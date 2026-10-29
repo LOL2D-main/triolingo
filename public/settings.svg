@@ -1,0 +1,22 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gearGrad" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="innerGrad" x1="10" y1="10" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <filter id="shadow" x="0" y="2" width="32" height="30" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="1" flood-color="#0369a1" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <!-- Outer Gear Body -->
+    <path d="M14 2.5C14 1.67 14.67 1 15.5 1H16.5C17.33 1 18 1.67 18 2.5V4.18C19.12 4.47 20.18 4.95 21.13 5.58L22.32 4.39C22.91 3.8 23.85 3.8 24.44 4.39L25.15 5.1C25.74 5.69 25.74 6.63 25.15 7.22L23.96 8.41C24.59 9.36 25.07 10.42 25.36 11.54H27.04C27.87 11.54 28.54 12.21 28.54 13.04V14.04C28.54 14.87 27.87 15.54 27.04 15.54H25.36C25.07 16.66 24.59 17.72 23.96 18.67L25.15 19.86C25.74 20.45 25.74 21.39 25.15 21.98L24.44 22.69C23.85 23.28 22.91 23.28 22.32 22.69L21.13 21.5C20.18 22.13 19.12 22.61 18 22.9V24.58C18 25.41 17.33 26.08 16.5 26.08H15.5C14.67 26.08 14 25.41 14 24.58V22.9C12.88 22.61 11.82 22.13 10.87 21.5L9.68 22.69C9.09 23.28 8.15 23.28 7.56 22.69L6.85 21.98C6.26 21.39 6.26 20.45 6.85 19.86L8.04 18.67C7.41 17.72 6.93 16.66 6.64 15.54H4.96C4.13 15.54 3.46 14.87 3.46 14.04V13.04C3.46 12.21 4.13 11.54 4.96 11.54H6.64C6.93 10.42 7.41 9.36 8.04 8.41L6.85 7.22C6.26 6.63 6.26 5.69 6.85 5.1L7.56 4.39C8.15 3.8 9.09 3.8 9.68 4.39L10.87 5.58C11.82 4.95 12.88 4.47 14 4.18V2.5Z" fill="url(#gearGrad)" stroke="#0284c7" stroke-width="0.75" />
+    <!-- Center Hole -->
+    <circle cx="16" cy="13.54" r="5" fill="url(#innerGrad)" stroke="#0284c7" stroke-width="1.5" />
+    <circle cx="16" cy="13.54" r="2.2" fill="#0284c7" />
+  </g>
+</svg>

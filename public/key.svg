@@ -1,0 +1,16 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="keyBody" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <!-- Key shadow / 3D base -->
+  <path d="M12 4C7.58 4 4 7.58 4 12C4 15.68 6.5 18.77 9.88 19.67L8 21.55V25H11.5L13.5 23H15.5L17.5 21H19.5L21.5 19H22.5L24.5 17H26V14.5L23.75 12.25C23.91 11.52 24 10.77 24 10C24 5.58 20.42 2 16 2C14.5 2 13.15 2.45 12 3.2V4Z" fill="#d97706" />
+  <!-- Key main body -->
+  <circle cx="11" cy="11" r="7" fill="url(#keyBody)" stroke="#d97706" stroke-width="1.5" />
+  <!-- Key ring hole -->
+  <circle cx="11" cy="11" r="3" fill="#ffffff" stroke="#d97706" stroke-width="1.2" />
+  <!-- Shaft and teeth -->
+  <path d="M16 11H27C27.55 11 28 11.45 28 12V14.5C28 14.78 27.89 15.04 27.71 15.22L26 17H23.5V14.5H21V17H18.5V14.5H16.5" fill="url(#keyBody)" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round" />
+</svg>
