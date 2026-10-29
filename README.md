@@ -47,6 +47,8 @@ Here is the folder structure of this app.
 ```bash
 duolingo-clone/
   |- actions/
+    |-- admin.ts
+    |-- auth.ts
     |-- challenge-progress.ts
     |-- user-progress.ts
     |-- user-subscription.ts
@@ -56,6 +58,7 @@ duolingo-clone/
     |-- (marketing)/
     |-- admin/
     |-- api/
+    |-- banned/
     |-- lesson/
     |-- apple-icon.png
     |-- favicon.ico
@@ -66,8 +69,15 @@ duolingo-clone/
   |- components/
     |-- modals/
     |-- ui/
+    |-- auth-form.tsx
+    |-- auth-provider.tsx
     |-- banner.tsx
+    |-- chest-graphics.tsx
+    |-- daily-gift-button.tsx
     |-- feed-wrapper.tsx
+    |-- flame-icon.tsx
+    |-- google-icon.tsx
+    |-- interactive-text.tsx
     |-- mobile-header.tsx
     |-- mobile-sidebar.tsx
     |-- promo.tsx
@@ -75,7 +85,10 @@ duolingo-clone/
     |-- sidebar-item.tsx
     |-- sidebar.tsx
     |-- sticky-wrapper.tsx
+    |-- streak-button.tsx
     |-- user-progress.tsx
+    |-- vertical-banner.tsx
+    |-- zalo-icon.tsx
   |- config/
     |-- index.ts
   |- db/
@@ -83,16 +96,39 @@ duolingo-clone/
     |-- queries.ts
     |-- schema.ts
   |- lib/
+    |-- admin-constants.ts
     |-- admin.ts
+    |-- auth-constants.ts
+    |-- auth.ts
+    |-- energy.ts
+    |-- exercise-types.ts
+    |-- firebase.ts
+    |-- glossary.ts
+    |-- session.ts
+    |-- speech.ts
+    |-- streak.ts
     |-- stripe.ts
     |-- utils.ts
+    |-- word-bank.ts
   |- public/
   |- scripts/
+    |-- a1-curriculum.ts
+    |-- a1-units-data-archive.ts
+    |-- a1-units-data.ts
+    |-- curriculum-b1.ts
+    |-- curriculum-b2.ts
+    |-- curriculum-c1.ts
+    |-- curriculum-c2.ts
     |-- prod.ts
   |- store/
+    |-- use-chest-modal.ts
+    |-- use-energy-modal.ts
     |-- use-exit-modal.ts
     |-- use-hearts-modal.ts
     |-- use-practice-modal.ts
+    |-- use-settings.ts
+    |-- use-streak-modal.ts
+    |-- use-upgrade-modal.ts
   |- .env.example
   |- .env/.env.local
   |- .gitignore
@@ -103,6 +139,9 @@ duolingo-clone/
   |- drizzle.config.ts
   |- environment.d.ts
   |- eslint.config.mjs
+  |- GPN DET Sample Questions - Full.pdf
+  |- hello.ts
+  |- neon.ts
   |- next.config.ts
   |- package.json
   |- pnpm-lock.yaml
@@ -250,7 +289,9 @@ Useful resources and dependencies that are used in Lingo.
 - Flagpack: https://flagpack.xyz/
 
 <!--- DEPENDENCIES_START --->
-- [@clerk/nextjs](https://www.npmjs.com/package/@clerk/nextjs): ^7.9.17
+- [@andresaya/edge-tts](https://www.npmjs.com/package/@andresaya/edge-tts): ^1.9.1
+- [@neon/config](https://www.npmjs.com/package/@neon/config): ^1.9.3
+- [@neon/env](https://www.npmjs.com/package/@neon/env): ^1.6.4
 - [@neondatabase/serverless](https://www.npmjs.com/package/@neondatabase/serverless): ^1.2.0
 - [@radix-ui/react-avatar](https://www.npmjs.com/package/@radix-ui/react-avatar): ^1.2.6
 - [@radix-ui/react-dialog](https://www.npmjs.com/package/@radix-ui/react-dialog): ^1.3.0
@@ -270,6 +311,7 @@ Useful resources and dependencies that are used in Lingo.
 - [eslint](https://www.npmjs.com/package/eslint): ^9
 - [eslint-config-next](https://www.npmjs.com/package/eslint-config-next): 16.3.6
 - [eslint-config-prettier](https://www.npmjs.com/package/eslint-config-prettier): ^10.1.8
+- [firebase](https://www.npmjs.com/package/firebase): ^13.1.0
 - [lucide-react](https://www.npmjs.com/package/lucide-react): ^1.52.0
 - [next](https://www.npmjs.com/package/next): ^16.4.0
 - [pg](https://www.npmjs.com/package/pg): ^8.23.1
