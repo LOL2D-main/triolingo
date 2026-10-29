@@ -387,7 +387,7 @@ export const Quiz = ({
       />
 
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 pb-8 pt-6 lg:pt-10">
+        <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-3 sm:px-6 pb-6 pt-3 sm:pt-6 lg:pt-8">
           {isExercise ? (
             <RichChallenge
               exercise={challenge.payload!}

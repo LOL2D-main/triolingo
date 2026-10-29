@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 import { FeedWrapper } from "@/components/feed-wrapper";
@@ -7,7 +6,7 @@ import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
 import { VerticalBanner } from "@/components/vertical-banner";
 import { getUserProgress, getUserSubscription } from "@/db/queries";
-
+import { auth } from "@/lib/auth";
 import { getVietnamToday } from "@/lib/streak";
 
 import { QuestsClient } from "./quests-client";
@@ -23,10 +22,11 @@ const QuestsPage = async () => {
   if (!userProgress || !userProgress.activeCourse) redirect("/courses");
 
   const isPro = !!userSubscription?.isActive;
-  const isDailyGiftClaimed = userProgress.dailyFreeChestDate === getVietnamToday();
+  const isDailyGiftClaimed =
+    userProgress.dailyFreeChestDate === getVietnamToday();
 
   return (
-    <div className="flex flex-row-reverse gap-[48px] px-6">
+    <div className="flex flex-row-reverse gap-[48px] px-3 sm:px-6">
       <StickyWrapper>
         <UserProgress
           activeCourse={userProgress.activeCourse}

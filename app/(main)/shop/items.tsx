@@ -47,20 +47,21 @@ export const Items = ({
   return (
     <ul className="w-full">
       {/* Hoi phuc nang luong bang da quy Gem */}
-      <li className="flex w-full items-center gap-x-4 border-t-2 p-4">
-        <Image
-          src="/energy.png"
-          alt="Energy"
-          height={40}
-          width={60}
-          className="object-contain"
-        />
+      <li className="flex w-full items-center gap-x-3 sm:gap-x-4 border-t-2 border-slate-200 p-3 sm:p-4">
+        <div className="relative h-10 w-12 sm:h-12 sm:w-16 shrink-0">
+          <Image
+            src="/energy.png"
+            alt="Energy"
+            fill
+            className="object-contain"
+          />
+        </div>
 
-        <div className="flex-1">
-          <p className="text-base font-bold text-neutral-700 lg:text-xl">
+        <div className="flex-1 min-w-0 pr-2">
+          <p className="text-sm sm:text-base font-bold text-neutral-800 break-words">
             Hồi phục toàn bộ Năng lượng
           </p>
-          <p className="text-xs text-neutral-500">
+          <p className="text-[11px] sm:text-xs text-neutral-500 break-words mt-0.5">
             Dùng 50 Đá quý để nạp đầy lại 20/20 năng lượng học tập ngay lập tức.
           </p>
         </div>
@@ -69,6 +70,7 @@ export const Items = ({
           onClick={onRefillEnergy}
           disabled={pending || isEnergyFull || gems < GEMS_FOR_REFILL}
           aria-disabled={pending || isEnergyFull || gems < GEMS_FOR_REFILL}
+          className="shrink-0 text-xs sm:text-sm px-3 sm:px-4 h-10 font-bold"
         >
           {isEnergyFull ? (
             "Đầy"
@@ -77,8 +79,8 @@ export const Items = ({
               <Image
                 src="/gem.png"
                 alt="Gem"
-                height={20}
-                width={20}
+                height={18}
+                width={18}
                 className="object-contain"
               />
               <p className="font-bold">{GEMS_FOR_REFILL}</p>
@@ -88,20 +90,21 @@ export const Items = ({
       </li>
 
       {/* Nang cap goi Ultra - Mo popup nhap key hoac lien he Zalo */}
-      <li className="flex w-full items-center gap-x-4 border-t-2 p-4 pt-8">
-        <Image
-          src="/enery_ultra.png"
-          alt="Ultra"
-          height={48}
-          width={70}
-          className="object-contain drop-shadow"
-        />
+      <li className="flex w-full items-center gap-x-3 sm:gap-x-4 border-t-2 border-slate-200 p-3 sm:p-4 pt-6 sm:pt-8">
+        <div className="relative h-10 w-12 sm:h-12 sm:w-16 shrink-0">
+          <Image
+            src="/enery_ultra.png"
+            alt="Ultra"
+            fill
+            className="object-contain drop-shadow"
+          />
+        </div>
 
-        <div className="flex-1">
-          <p className="text-base font-bold text-neutral-700 lg:text-xl">
+        <div className="flex-1 min-w-0 pr-2">
+          <p className="text-sm sm:text-base font-bold text-neutral-800 break-words">
             Gói Ultra (Năng lượng vô hạn)
           </p>
-          <p className="text-xs text-neutral-500">
+          <p className="text-[11px] sm:text-xs text-neutral-500 break-words mt-0.5">
             Không tính năng lượng khi làm bài, học tập thoải mái không giới hạn!
           </p>
         </div>
@@ -111,9 +114,9 @@ export const Items = ({
           variant={hasActiveSubscription ? "default" : "super"}
           disabled={pending || hasActiveSubscription}
           aria-disabled={pending || hasActiveSubscription}
-          className="font-bold"
+          className="shrink-0 text-xs sm:text-sm px-3 sm:px-4 h-10 font-bold"
         >
-          {hasActiveSubscription ? "Đang sử dụng" : "Nâng cấp"}
+          {hasActiveSubscription ? "Đang dùng" : "Nâng cấp"}
         </Button>
       </li>
     </ul>

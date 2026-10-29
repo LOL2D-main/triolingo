@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
@@ -9,13 +8,9 @@ import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
 import { VerticalBanner } from "@/components/vertical-banner";
 import { getUserProgress, getUserSubscription } from "@/db/queries";
+import { auth } from "@/lib/auth";
 
 import { SettingsForm } from "./settings-form";
-
-export const metadata = {
-  title: "Cài đặt | TrioLingo",
-  description: "Cài đặt tài khoản, hồ sơ cá nhân, đổi avatar, mật khẩu, âm thanh và rung.",
-};
 
 const SettingsPage = async () => {
   await auth.protect();
@@ -35,7 +30,7 @@ const SettingsPage = async () => {
   const isPro = !!userSubscription?.isActive;
 
   return (
-    <div className="flex flex-row-reverse gap-[48px] px-6">
+    <div className="flex flex-row-reverse gap-[48px] px-3 sm:px-6">
       <StickyWrapper>
         <UserProgress
           activeCourse={userProgress.activeCourse}
@@ -61,15 +56,16 @@ const SettingsPage = async () => {
           <Image
             src="/settings.svg"
             alt="Cài đặt"
-            height={90}
-            width={90}
+            height={80}
+            width={80}
+            className="h-16 w-16 sm:h-20 sm:w-20"
           />
 
-          <h1 className="my-6 text-center text-2xl font-bold text-neutral-800">
-            Cài đặt
+          <h1 className="my-4 sm:my-6 text-center text-xl sm:text-2xl font-black text-neutral-800">
+            Tài khoản & Cài đặt
           </h1>
-          <p className="mb-6 text-center text-lg text-muted-foreground">
-            Tùy chỉnh thông tin hồ sơ, tài khoản và trải nghiệm học tập của bạn.
+          <p className="mb-4 sm:mb-6 text-center text-xs sm:text-base text-muted-foreground px-2">
+            Quản lý hồ sơ cá nhân, ảnh đại diện, đổi mật khẩu và tùy chỉnh âm thanh.
           </p>
 
           <SettingsForm initialProgress={userProgress} />

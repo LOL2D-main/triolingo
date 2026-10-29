@@ -171,7 +171,7 @@ export const LessonButton = ({
 
       {/* Popover Card Duolingo Style (Anh 2) */}
       {isOpen && (
-        <div className="absolute top-[82px] z-30 w-[290px] sm:w-[320px] animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute top-[82px] left-1/2 -translate-x-1/2 z-30 w-[min(310px,calc(100vw-36px))] animate-in fade-in zoom-in-95 duration-150">
           {/* Mũi tên chỉ lên viên tròn */}
           <div className="mx-auto h-0 w-0 border-x-8 border-x-transparent border-b-8 border-b-[#1cb0f6]" />
 

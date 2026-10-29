@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
@@ -8,6 +7,7 @@ import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
 import { VerticalBanner } from "@/components/vertical-banner";
 import { getUserProgress, getUserSubscription } from "@/db/queries";
+import { auth } from "@/lib/auth";
 
 import { Items } from "./items";
 
@@ -27,7 +27,7 @@ const ShopPage = async () => {
   const isPro = !!userSubscription?.isActive;
 
   return (
-    <div className="flex flex-row-reverse gap-[48px] px-6">
+    <div className="flex flex-row-reverse gap-[48px] px-3 sm:px-6">
       <StickyWrapper>
         <UserProgress
           activeCourse={userProgress.activeCourse}
@@ -50,13 +50,19 @@ const ShopPage = async () => {
 
       <FeedWrapper>
         <div className="flex w-full flex-col items-center">
-          <Image src="/shop.svg" alt="Shop" height={90} width={90} />
+          <Image
+            src="/shop.svg"
+            alt="Shop"
+            height={80}
+            width={80}
+            className="h-16 w-16 sm:h-20 sm:w-20"
+          />
 
-          <h1 className="my-6 text-center text-2xl font-bold text-neutral-800">
+          <h1 className="my-4 sm:my-6 text-center text-xl sm:text-2xl font-black text-neutral-800">
             Cửa hàng
           </h1>
-          <p className="mb-6 text-center text-lg text-muted-foreground">
-            Dùng đá quý (Gem) của bạn để đổi các vật phẩm hấp dẫn. Điểm KN được dùng để đua thứ hạng trên Bảng xếp hạng.
+          <p className="mb-4 sm:mb-6 text-center text-xs sm:text-base text-muted-foreground px-2">
+            Dùng Đá quý để hồi phục năng lượng hoặc nâng cấp gói Ultra học không giới hạn.
           </p>
 
           <Items
