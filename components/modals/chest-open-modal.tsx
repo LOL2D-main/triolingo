@@ -14,40 +14,79 @@ import {
 import { useChestModal } from "@/store/use-chest-modal";
 import { useSettings } from "@/store/use-settings";
 
-type AnimationPhase = "idle" | "shaking" | "cracking" | "exploding" | "reward";
+type AnimationPhase = "idle" | "piercing" | "opening" | "reward";
 
 const THEMES = {
   wood: {
-    bg: "bg-[#131F24]",
+    bg: "bg-[#111B21]",
     title: "RƯƠNG ĐỒNG",
-    titleColor: "text-[#E5A93C]",
-    rays:
-      "conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.28) 18deg, transparent 36deg, rgba(255,255,255,0.22) 60deg, transparent 80deg, rgba(255,255,255,0.28) 108deg, transparent 130deg, rgba(255,255,255,0.22) 160deg, transparent 180deg, rgba(255,255,255,0.28) 210deg, transparent 235deg, rgba(255,255,255,0.24) 265deg, transparent 290deg, rgba(255,255,255,0.26) 325deg, transparent 360deg)",
-    core: "radial-gradient(circle, rgba(255,255,255,0.82) 0%, rgba(241,245,249,0.45) 42%, rgba(255,255,255,0) 72%)",
-    flash: "rgba(255, 255, 255, 0.88)",
+    titleColor: "text-[#FFC800]",
+    beamPrimary: "#FFF7D6",
+    beamSecondary: "#FFC800",
+    seamGlow: "rgba(255, 215, 100, 0.9)",
+    burstFlash:
+      "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,230,128,0.65) 45%, rgba(17,27,33,0) 80%)",
   },
   rare: {
-    bg: "bg-[#0088FF]",
-    title: "HÀNG HIẾM",
-    titleColor: "text-white",
-    rays:
-      "conic-gradient(from 0deg, transparent 0deg, rgba(125,211,252,0.85) 16deg, transparent 34deg, rgba(56,189,248,0.75) 54deg, transparent 74deg, rgba(224,242,254,0.9) 96deg, transparent 118deg, rgba(56,189,248,0.8) 144deg, transparent 168deg, rgba(125,211,252,0.85) 195deg, transparent 218deg, rgba(224,242,254,0.85) 244deg, transparent 268deg, rgba(56,189,248,0.8) 296deg, transparent 322deg, rgba(125,211,252,0.9) 344deg, transparent 360deg)",
-    core: "radial-gradient(circle, #FFFFFF 0%, #7DD3FC 35%, rgba(0,229,255,0.75) 62%, rgba(0,136,255,0) 82%)",
-    flash: "radial-gradient(circle, #FFFFFF 20%, #38BDF8 80%, #0284C7 100%)",
+    bg: "bg-[#0B2545]",
+    title: "RƯƠNG HIẾM",
+    titleColor: "text-[#7DD3FC]",
+    beamPrimary: "#FFFFFF",
+    beamSecondary: "#38BDF8",
+    seamGlow: "rgba(56, 189, 248, 0.95)",
+    burstFlash:
+      "radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(56,189,248,0.75) 48%, rgba(11,37,69,0) 82%)",
   },
   legendary: {
-    bg: "bg-[#FF9600]",
-    title: "MEGA",
-    titleColor: "text-white",
-    rays:
-      "conic-gradient(from 0deg, transparent 0deg, rgba(255,253,231,0.98) 14deg, rgba(255,215,0,0.6) 24deg, transparent 36deg, rgba(255,238,88,0.95) 52deg, transparent 68deg, rgba(255,255,255,1) 86deg, rgba(255,215,0,0.7) 98deg, transparent 112deg, rgba(255,241,118,0.95) 132deg, transparent 150deg, rgba(255,253,231,0.98) 170deg, transparent 190deg, rgba(255,215,0,0.95) 210deg, transparent 228deg, rgba(255,255,255,1) 248deg, transparent 268deg, rgba(255,238,88,0.95) 290deg, transparent 310deg, rgba(255,253,231,1) 334deg, transparent 360deg)",
-    core: "radial-gradient(circle, #FFFFFF 0%, #FFF59D 32%, #FFD700 60%, rgba(255,150,0,0) 85%)",
-    flash: "radial-gradient(circle, #FFFFFF 35%, #FFF176 75%, #FFB300 100%)",
+    bg: "bg-[#231123]",
+    title: "RƯƠNG MEGA",
+    titleColor: "text-[#FFE033]",
+    beamPrimary: "#FFFFFF",
+    beamSecondary: "#FFD700",
+    seamGlow: "rgba(255, 215, 0, 1)",
+    burstFlash:
+      "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,224,51,0.85) 50%, rgba(35,17,35,0) 85%)",
   },
 } as const;
 
+/**
+ * Danh sach cac tia sang ban dan dan tu khe hop ra ngoai (KHONG xoay nhu canh quat)
+ * Moi tia co goc ban, do dai, do rong va thoi gian tre (delay) khac nhau.
+ */
+const PIERCING_BEAMS = [
+  { angle: -18, length: 300, width: 34, delay: 0.08 },
+  { angle: 22, length: 310, width: 36, delay: 0.24 },
+  { angle: -58, length: 280, width: 28, delay: 0.42 },
+  { angle: 62, length: 285, width: 30, delay: 0.58 },
+  { angle: 2, length: 340, width: 42, delay: 0.74 },
+  { angle: -82, length: 260, width: 26, delay: 0.88 },
+  { angle: 84, length: 265, width: 26, delay: 1.02 },
+  { angle: -38, length: 325, width: 34, delay: 1.15 },
+  { angle: 42, length: 320, width: 34, delay: 1.26 },
+  { angle: -102, length: 230, width: 22, delay: 1.36 },
+  { angle: 104, length: 230, width: 22, delay: 1.44 },
+];
+
+/**
+ * Danh sach cac vien da quy va tia lap lanh ban tung tu trong long ruong khi bung nap
+ */
+const ERUPTING_GEMS = [
+  { tx: "-135px", ty: "-195px", rot: "-38deg", scale: 1.05, delay: "0s" },
+  { tx: "140px", ty: "-190px", rot: "42deg", scale: 1.05, delay: "0.03s" },
+  { tx: "-75px", ty: "-245px", rot: "-20deg", scale: 1.18, delay: "0.05s" },
+  { tx: "82px", ty: "-240px", rot: "25deg", scale: 1.15, delay: "0.07s" },
+  { tx: "0px", ty: "-270px", rot: "8deg", scale: 1.28, delay: "0.02s" },
+  { tx: "-185px", ty: "-125px", rot: "-55deg", scale: 0.92, delay: "0.08s" },
+  { tx: "190px", ty: "-120px", rot: "58deg", scale: 0.92, delay: "0.09s" },
+  { tx: "-42px", ty: "-175px", rot: "-12deg", scale: 1.0, delay: "0.11s" },
+  { tx: "48px", ty: "-170px", rot: "16deg", scale: 1.0, delay: "0.12s" },
+  { tx: "-115px", ty: "-95px", rot: "-28deg", scale: 0.88, delay: "0.14s" },
+  { tx: "120px", ty: "-90px", rot: "32deg", scale: 0.88, delay: "0.15s" },
+];
+
 export const ChestOpenModal = () => {
-  const { isOpen, tier, rewardGems, questId, title, description, close } = useChestModal();
+  const { isOpen, tier, rewardGems, questId, description, close } =
+    useChestModal();
   const { playSound, triggerVibrate, animations } = useSettings();
   const { width, height } = useWindowSize();
   const router = useRouter();
@@ -68,7 +107,7 @@ export const ChestOpenModal = () => {
   useEffect(() => {
     if (phase !== "reward") return;
     let current = 0;
-    const step = Math.max(1, Math.ceil(rewardGems / 28));
+    const step = Math.max(1, Math.ceil(rewardGems / 26));
     const timer = setInterval(() => {
       current += step;
       if (current >= rewardGems) {
@@ -106,26 +145,22 @@ export const ChestOpenModal = () => {
       setIsClaiming(false);
     }
 
-    // 1. Lac rương
-    setPhase("shaking");
-    triggerVibrate([60, 40, 80, 40, 100]);
+    // Giai doan 1 (0ms -> 1650ms): Ruong nen xuong, rung tich tu nang luong + Tia sang ban dan dan qua khe hop
+    setPhase("piercing");
+    triggerVibrate([50, 40, 70, 35, 90, 30, 130]);
     playSound("/correct.wav");
 
-    // 2. He mieng rương, anh sang loe ra
+    // Giai doan 2 (1650ms -> 2650ms): Bung nap ruong + Da quy ban tung tu trong long hop
     setTimeout(() => {
-      setPhase("cracking");
-      triggerVibrate([80, 30, 140]);
-    }, 900);
-
-    // 3. Bung nap, no anh sang
-    setTimeout(() => {
-      setPhase("exploding");
+      setPhase("opening");
       playSound("/finish.mp3");
       triggerVibrate([180, 50, 220]);
-    }, 2050);
+    }, 1650);
 
-    // 4. Man hinh nhan da quy
-    setTimeout(() => setPhase("reward"), 2550);
+    // Giai doan 3 (2650ms): Chuyen sang man hinh khoe thuong Da quy
+    setTimeout(() => {
+      setPhase("reward");
+    }, 2650);
   };
 
   const onContinue = () => {
@@ -136,33 +171,133 @@ export const ChestOpenModal = () => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden select-none">
       <style jsx global>{`
-        @keyframes chestShake {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          12% { transform: translate(-12px, 4px) rotate(-7deg); }
-          25% { transform: translate(12px, -4px) rotate(7deg); }
-          37% { transform: translate(-15px, 2px) rotate(-9deg); }
-          50% { transform: translate(15px, -3px) rotate(9deg); }
-          62% { transform: translate(-16px, 3px) rotate(-10deg); }
-          75% { transform: translate(16px, -2px) rotate(10deg); }
-          88% { transform: translate(-8px, 2px) rotate(-5deg); }
-          100% { transform: translate(0, 0) rotate(0deg); }
+        @keyframes chestIdleFloat {
+          0%, 100% {
+            transform: translateY(0) scale(1);
+          }
+          50% {
+            transform: translateY(-6px) scale(1.02);
+          }
         }
-        @keyframes chestTremble {
-          0%, 100% { transform: translate(-3px, 0) rotate(-1.5deg) scale(1.06); }
-          50% { transform: translate(3px, 0) rotate(1.5deg) scale(1.09); }
+        @keyframes chestChargeBuildUp {
+          0% {
+            transform: scale(1.14, 0.86) translateY(10px);
+          }
+          15% {
+            transform: scale(0.96, 1.04) translate(-4px, 0) rotate(-2deg);
+          }
+          30% {
+            transform: scale(1.04, 0.96) translate(5px, 2px) rotate(2.5deg);
+          }
+          45% {
+            transform: scale(0.98, 1.03) translate(-6px, -1px) rotate(-3deg);
+          }
+          60% {
+            transform: scale(1.05, 0.95) translate(7px, 2px) rotate(3.5deg);
+          }
+          75% {
+            transform: scale(1.06, 0.94) translate(-8px, 1px) rotate(-4deg);
+          }
+          88% {
+            transform: scale(1.09, 0.91) translate(8px, 3px) rotate(4deg);
+          }
+          95% {
+            transform: scale(1.14, 0.86) translate(-4px, 6px) rotate(-2deg);
+          }
+          100% {
+            transform: scale(1.16, 0.84) translate(0, 8px) rotate(0deg);
+          }
         }
-        @keyframes chestExplode {
-          0% { transform: scale(1.08); opacity: 1; }
-          40% { transform: scale(1.42); opacity: 1; }
-          100% { transform: scale(1.9); opacity: 0; }
+        @keyframes chestOpenSpring {
+          0% {
+            transform: scale(1.16, 0.84) translateY(8px);
+          }
+          28% {
+            transform: scale(0.92, 1.12) translateY(-22px);
+          }
+          58% {
+            transform: scale(1.04, 0.97) translateY(4px);
+          }
+          80% {
+            transform: scale(0.99, 1.01) translateY(-2px);
+          }
+          100% {
+            transform: scale(1, 1) translateY(0);
+          }
         }
-        @keyframes spinRays {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes beamPierceOut {
+          0% {
+            opacity: 0;
+            transform: rotate(var(--beam-angle)) scaleY(0) scaleX(0.3);
+          }
+          30% {
+            opacity: 1;
+            transform: rotate(var(--beam-angle)) scaleY(1.08) scaleX(1.15);
+          }
+          70% {
+            opacity: 0.95;
+            transform: rotate(var(--beam-angle)) scaleY(1) scaleX(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: rotate(var(--beam-angle)) scaleY(1.15) scaleX(1.2);
+          }
         }
-        @keyframes rewardIn {
-          0% { transform: scale(0.6); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
+        @keyframes seamSparkleFly {
+          0% {
+            opacity: 0;
+            transform: translate(0, 0) scale(0.3);
+          }
+          25% {
+            opacity: 1;
+            transform: translate(var(--sx), var(--sy)) scale(1.1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(calc(var(--sx) * 1.9), calc(var(--sy) * 1.9)) scale(0);
+          }
+        }
+        @keyframes gemFountainArc {
+          0% {
+            opacity: 0;
+            transform: translate(0, 10px) scale(0.25) rotate(0deg);
+          }
+          20% {
+            opacity: 1;
+          }
+          65% {
+            opacity: 1;
+            transform: translate(var(--tx), var(--ty)) scale(var(--gscale)) rotate(var(--grot));
+          }
+          100% {
+            opacity: 0;
+            transform: translate(calc(var(--tx) * 1.18), calc(var(--ty) + 65px))
+              scale(calc(var(--gscale) * 0.85)) rotate(calc(var(--grot) * 1.4));
+          }
+        }
+        @keyframes burstFlashAnim {
+          0% {
+            opacity: 0.95;
+            transform: scale(0.6);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(2.1);
+          }
+        }
+        @keyframes rewardSpringIn {
+          0% {
+            transform: scale(0.55) translateY(24px);
+            opacity: 0;
+          }
+          65% {
+            transform: scale(1.05) translateY(-4px);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+          }
         }
       `}</style>
 
@@ -171,27 +306,41 @@ export const ChestOpenModal = () => {
           {animations && (
             <Confetti
               recycle={false}
-              numberOfPieces={tier === "legendary" ? 450 : tier === "rare" ? 280 : 160}
-              tweenDuration={6000}
+              numberOfPieces={
+                tier === "legendary" ? 420 : tier === "rare" ? 260 : 160
+              }
+              tweenDuration={5500}
               width={width}
               height={height}
             />
           )}
 
-          <h1
-            className="mt-4 text-4xl font-black tracking-tight text-[#1CB0F6] sm:text-5xl"
-            style={{ animation: "rewardIn 0.4s ease-out forwards" }}
+          <div
+            className="mt-4 flex flex-col items-center"
+            style={{
+              animation:
+                "rewardSpringIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+            }}
           >
-            +{displayedGems} đá quý
-          </h1>
+            <span className="rounded-full bg-sky-100 px-4 py-1 text-xs font-black uppercase tracking-widest text-sky-600">
+              Phần thưởng rương
+            </span>
+            <h1 className="mt-2 text-4xl font-black tracking-tight text-[#1CB0F6] sm:text-5xl">
+              +{displayedGems} đá quý
+            </h1>
+          </div>
 
           <div
             className="flex max-w-md flex-col items-center text-center"
-            style={{ animation: "rewardIn 0.5s ease-out forwards" }}
+            style={{
+              animation:
+                "rewardSpringIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+            }}
           >
             <GemRewardPileGraphic className="h-64 w-72 sm:h-72 sm:w-80" />
             <p className="mt-6 text-xl font-extrabold leading-snug text-[#3C3C3C] sm:text-2xl">
-              {description || "Bạn nhận được phần thưởng từ nhiệm vụ hằng ngày!"}
+              {description ||
+                "Bạn nhận được phần thưởng từ nhiệm vụ hằng ngày!"}
             </p>
           </div>
 
@@ -199,7 +348,7 @@ export const ChestOpenModal = () => {
             <button
               type="button"
               onClick={onContinue}
-              className="w-full rounded-2xl bg-[#1CB0F6] py-4 text-lg font-black uppercase tracking-wider text-white shadow-[0_5px_0_#1899D6] hover:bg-[#14A4E8] active:translate-y-1 active:shadow-none"
+              className="w-full rounded-2xl bg-[#1CB0F6] py-4 text-lg font-black uppercase tracking-wider text-white shadow-[0_5px_0_#1899D6] transition hover:bg-[#14A4E8] active:translate-y-1 active:shadow-none"
             >
               TIẾP TỤC
             </button>
@@ -208,57 +357,166 @@ export const ChestOpenModal = () => {
       ) : (
         <div
           onClick={handleTapChest}
-          className={`relative flex h-full w-full cursor-pointer flex-col items-center justify-between px-6 py-14 ${theme.bg}`}
+          className={`relative flex h-full w-full cursor-pointer flex-col items-center justify-between px-6 py-12 ${theme.bg}`}
         >
-          <div
-            className={`pointer-events-none fixed inset-0 z-50 transition-opacity duration-500 ${
-              phase === "exploding" ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ background: theme.flash }}
-          />
+          {/* Tia chop sang bung ra dung khoanh khac nap ruong bat mo */}
+          {phase === "opening" && (
+            <div
+              className="pointer-events-none fixed inset-0 z-40"
+              style={{
+                background: theme.burstFlash,
+                animation: "burstFlashAnim 0.55s ease-out forwards",
+              }}
+            />
+          )}
 
           <h2
-            className={`z-20 mt-6 text-4xl font-black uppercase tracking-wider sm:text-5xl ${theme.titleColor}`}
+            className={`z-20 mt-4 text-3xl font-black uppercase tracking-wider sm:text-5xl ${theme.titleColor} drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]`}
           >
             {theme.title}
           </h2>
 
+          {/* San khau trung tam cua Ruong */}
           <div className="relative flex flex-1 items-center justify-center">
-            {(phase === "cracking" || phase === "exploding") && (
-              <div className="pointer-events-none absolute flex items-center justify-center">
-                <div
-                  className="h-[520px] w-[520px] rounded-full sm:h-[640px] sm:w-[640px]"
-                  style={{
-                    background: theme.rays,
-                    animation: "spinRays 8s linear infinite",
-                  }}
-                />
-                <div
-                  className="absolute h-80 w-80 rounded-full blur-md sm:h-96 sm:w-96"
-                  style={{ background: theme.core }}
-                />
+            {/* QUANG SANG AM TU KHE HOP KHI DANG NEN NANG LUONG */}
+            {(phase === "piercing" || phase === "opening") && (
+              <div
+                className="pointer-events-none absolute h-52 w-72 rounded-full blur-2xl transition-all duration-500"
+                style={{
+                  background: `radial-gradient(circle, ${theme.seamGlow} 0%, transparent 72%)`,
+                  transform:
+                    phase === "opening" ? "scale(1.65)" : "scale(1.05)",
+                }}
+              />
+            )}
+
+            {/* NHUNG TIA SANG BAN DAN DAN TU TRONG KHE HOP RA NGOAI (Khong xoay tron) */}
+            {(phase === "piercing" || phase === "opening") && (
+              <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+                {PIERCING_BEAMS.map((beam, idx) => (
+                  <div
+                    key={idx}
+                    style={
+                      {
+                        position: "absolute",
+                        bottom: "48%",
+                        width: `${beam.width}px`,
+                        height: `${beam.length}px`,
+                        transformOrigin: "bottom center",
+                        "--beam-angle": `${beam.angle}deg`,
+                        background: `linear-gradient(to top, ${theme.beamPrimary} 0%, ${theme.beamSecondary} 45%, transparent 100%)`,
+                        clipPath: "polygon(42% 100%, 58% 100%, 100% 0%, 0% 0%)",
+                        filter: "blur(1px) drop-shadow(0 0 10px rgba(255,255,255,0.8))",
+                        opacity: 0,
+                        animation: `beamPierceOut 0.45s cubic-bezier(0.16, 1, 0.3, 1) ${beam.delay}s forwards`,
+                      } as React.CSSProperties
+                    }
+                  />
+                ))}
+
+                {/* Hat nang luong ban ra doc khe nut cua hop */}
+                {[
+                  { sx: "-110px", sy: "-30px", d: "0.2s" },
+                  { sx: "115px", sy: "-25px", d: "0.35s" },
+                  { sx: "-85px", sy: "-75px", d: "0.55s" },
+                  { sx: "95px", sy: "-70px", d: "0.7s" },
+                  { sx: "-130px", sy: "15px", d: "0.9s" },
+                  { sx: "135px", sy: "12px", d: "1.05s" },
+                  { sx: "-55px", sy: "-105px", d: "1.2s" },
+                  { sx: "60px", sy: "-100px", d: "1.35s" },
+                ].map((sp, i) => (
+                  <div
+                    key={`spark-${i}`}
+                    className="absolute h-3 w-3 rounded-full bg-white shadow-[0_0_12px_#fff]"
+                    style={
+                      {
+                        "--sx": sp.sx,
+                        "--sy": sp.sy,
+                        opacity: 0,
+                        animation: `seamSparkleFly 0.65s ease-out ${sp.d} infinite`,
+                      } as React.CSSProperties
+                    }
+                  />
+                ))}
               </div>
             )}
 
+            {/* COT SANG PHUN LEN + DA QUY BAN Vang TU TRONG LONG HOP KHI NAP RUONG MO */}
+            {phase === "opening" && (
+              <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+                {/* Cot sang thang dung tu mieng hop */}
+                <div
+                  className="absolute bottom-[46%] h-72 w-44"
+                  style={{
+                    background: `linear-gradient(to top, #FFFFFF 0%, ${theme.beamSecondary} 50%, transparent 100%)`,
+                    clipPath: "polygon(22% 100%, 78% 100%, 100% 0%, 0% 0%)",
+                    filter: "blur(6px)",
+                  }}
+                />
+
+                {/* Da quy 3D ban tung len theo quy dao parabol tu trong ruong */}
+                {ERUPTING_GEMS.map((gem, idx) => (
+                  <div
+                    key={`gem-${idx}`}
+                    className="absolute"
+                    style={
+                      {
+                        "--tx": gem.tx,
+                        "--ty": gem.ty,
+                        "--grot": gem.rot,
+                        "--gscale": gem.scale,
+                        animation: `gemFountainArc 0.92s cubic-bezier(0.2, 0.85, 0.35, 1) ${gem.delay} forwards`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <svg
+                      width="44"
+                      height="44"
+                      viewBox="-28 -28 56 56"
+                      className="drop-shadow-[0_6px_12px_rgba(28,176,246,0.65)]"
+                    >
+                      <polygon
+                        points="0,-24 22,-12 24,12 4,24 -20,16 -24,-8"
+                        fill="#1CB0F6"
+                      />
+                      <polygon
+                        points="0,-24 22,-12 6,2 -14,-4 -24,-8"
+                        fill="#7DD3FC"
+                      />
+                      <polygon
+                        points="22,-12 24,12 4,24 6,2"
+                        fill="#0284C7"
+                      />
+                      <polygon
+                        points="-14,-8 -4,-14 0,-6 -10,-1"
+                        fill="#FFFFFF"
+                      />
+                    </svg>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* HINH RUONG CHINH */}
             <div
               className="relative z-10"
               style={{
                 animation:
-                  phase === "shaking"
-                    ? "chestShake 0.45s ease-in-out infinite"
-                    : phase === "cracking"
-                    ? "chestTremble 0.14s ease-in-out infinite"
-                    : phase === "exploding"
-                    ? "chestExplode 0.5s ease-out forwards"
+                  phase === "idle"
+                    ? "chestIdleFloat 2.4s ease-in-out infinite"
+                    : phase === "piercing"
+                    ? "chestChargeBuildUp 1.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards"
+                    : phase === "opening"
+                    ? "chestOpenSpring 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
                     : undefined,
               }}
             >
               <ChestArtwork
                 tier={tier}
                 openStage={
-                  phase === "cracking"
+                  phase === "piercing"
                     ? "cracked"
-                    : phase === "exploding"
+                    : phase === "opening"
                     ? "opened"
                     : "closed"
                 }
@@ -267,12 +525,12 @@ export const ChestOpenModal = () => {
             </div>
           </div>
 
-          <p className="z-20 mb-8 text-2xl font-black tracking-wide text-white sm:text-3xl">
+          <p className="z-20 mb-6 text-xl font-black tracking-wide text-white/95 sm:text-2xl">
             {phase === "idle"
-              ? "Tap to open!"
-              : phase === "shaking"
-              ? "Đang mở..."
-              : ""}
+              ? "Chạm vào rương để mở!"
+              : phase === "piercing"
+              ? "Đang tích tụ ánh sáng..."
+              : "Bung nắp!"}
           </p>
         </div>
       )}

@@ -165,6 +165,8 @@ export const userProgress = pgTable("user_progress", {
   lastStreakDate: text("last_streak_date").notNull().default(""),
   dailyFreeChestDate: text("daily_free_chest_date").notNull().default(""),
   claimedStreakMilestones: text("claimed_streak_milestones").notNull().default(""),
+  /** Chu ky tuan (7D) cua bang xep hang KN */
+  pointsWeek: text("points_week").notNull().default(""),
   /** Quan ly tai khoan (admin) */
   userEmail: text("user_email").default(""),
   isBanned: boolean("is_banned").notNull().default(false),

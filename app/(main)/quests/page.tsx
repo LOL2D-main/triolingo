@@ -5,8 +5,10 @@ import { Promo } from "@/components/promo";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
 import { VerticalBanner } from "@/components/vertical-banner";
+import { getDailyQuestsForToday } from "@/constants";
 import { getUserProgress, getUserSubscription } from "@/db/queries";
 import { auth } from "@/lib/auth";
+import { getVietnamDateString } from "@/lib/energy";
 import { getVietnamToday } from "@/lib/streak";
 
 import { QuestsClient } from "./quests-client";
@@ -22,6 +24,8 @@ const QuestsPage = async () => {
   if (!userProgress || !userProgress.activeCourse) redirect("/courses");
 
   const isPro = !!userSubscription?.isActive;
+  const todayStr = getVietnamDateString();
+  const dailyQuests = getDailyQuestsForToday(todayStr);
   const isDailyGiftClaimed =
     userProgress.dailyFreeChestDate === getVietnamToday();
 
@@ -45,8 +49,13 @@ const QuestsPage = async () => {
 
       <FeedWrapper>
         <QuestsClient
+          quests={dailyQuests}
           lessonsCompleted={userProgress.questLessonsCompleted ?? 0}
-          chestClaimed={!!userProgress.questChest1Claimed}
+          listeningCompleted={userProgress.questListeningCompleted ?? 0}
+          highAccuracyCompleted={userProgress.questHighAccuracyCompleted ?? 0}
+          chest1Claimed={!!userProgress.questChest1Claimed}
+          chest2Claimed={!!userProgress.questChest2Claimed}
+          chest3Claimed={!!userProgress.questChest3Claimed}
           isDailyGiftClaimed={isDailyGiftClaimed}
         />
       </FeedWrapper>

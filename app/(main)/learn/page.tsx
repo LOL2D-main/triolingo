@@ -55,7 +55,11 @@ const LearnPage = async () => {
         {!isPro && <Promo />}
         <Quests
           lessonsCompleted={userProgress.questLessonsCompleted ?? 0}
-          chestClaimed={!!userProgress.questChest1Claimed}
+          listeningCompleted={userProgress.questListeningCompleted ?? 0}
+          highAccuracyCompleted={userProgress.questHighAccuracyCompleted ?? 0}
+          chest1Claimed={!!userProgress.questChest1Claimed}
+          chest2Claimed={!!userProgress.questChest2Claimed}
+          chest3Claimed={!!userProgress.questChest3Claimed}
         />
         <VerticalBanner />
       </StickyWrapper>

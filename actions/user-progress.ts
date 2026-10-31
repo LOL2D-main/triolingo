@@ -7,7 +7,13 @@ import { redirect } from "next/navigation";
 
 import { setSessionCookie } from "@/lib/session";
 import { ADMIN_USER_ID } from "@/lib/admin-constants";
-import { DAILY_ENERGY, DAILY_QUESTS, MAX_HEARTS, POINTS_TO_REFILL } from "@/constants";
+import {
+  DAILY_ENERGY,
+  getDailyQuestsForToday,
+  MAX_HEARTS,
+  POINTS_TO_REFILL,
+  type DailyQuestId,
+} from "@/constants";
 import { getVietnamDateString } from "@/lib/energy";
 import { getVietnamToday, STREAK_MILESTONES } from "@/lib/streak";
 import db from "@/db/drizzle";
@@ -242,22 +248,36 @@ export const updateUserProfile = async ({
 };
 
 
-/** Nhan Ruong Dong khi hoan thanh nhiem vu hang ngay (hoc 1 bai). */
-export const claimQuestChest = async (questId: 1) => {
+/** Nhan Ruong khi hoan thanh nhiem vu hang ngay (1, 2, hoac 3). */
+export const claimQuestChest = async (questId: DailyQuestId) => {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized.");
 
   const currentUserProgress = await getUserProgress();
   if (!currentUserProgress) throw new Error("User progress not found.");
 
-  const quest = DAILY_QUESTS.find((q) => q.id === questId);
+  const todayQuests = getDailyQuestsForToday(getVietnamDateString());
+  const quest = todayQuests.find((q) => q.id === questId);
   if (!quest) throw new Error("Quest not found.");
 
-  if (currentUserProgress.questChest1Claimed) {
-    return { success: false, error: "Bạn đã mở rương hôm nay rồi." };
+  const isClaimed =
+    questId === 1
+      ? currentUserProgress.questChest1Claimed
+      : questId === 2
+      ? currentUserProgress.questChest2Claimed
+      : currentUserProgress.questChest3Claimed;
+
+  if (isClaimed) {
+    return { success: false, error: "Bạn đã mở rương nhiệm vụ này hôm nay rồi." };
   }
 
-  const done = currentUserProgress.questLessonsCompleted ?? 0;
+  const done =
+    questId === 1
+      ? currentUserProgress.questLessonsCompleted ?? 0
+      : questId === 2
+      ? currentUserProgress.questListeningCompleted ?? 0
+      : currentUserProgress.questHighAccuracyCompleted ?? 0;
+
   if (done < quest.target) {
     return {
       success: false,
@@ -267,9 +287,16 @@ export const claimQuestChest = async (questId: 1) => {
 
   const newGems = (currentUserProgress.gems ?? 100) + quest.rewardGems;
 
+  const claimUpdate =
+    questId === 1
+      ? { gems: newGems, questChest1Claimed: true }
+      : questId === 2
+      ? { gems: newGems, questChest2Claimed: true }
+      : { gems: newGems, questChest3Claimed: true };
+
   await db
     .update(userProgress)
-    .set({ gems: newGems, questChest1Claimed: true })
+    .set(claimUpdate)
     .where(eq(userProgress.userId, userId));
 
   revalidatePath("/quests");

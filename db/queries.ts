@@ -14,7 +14,10 @@ import {
   userProgress,
   userSubscription,
 } from "./schema";
-import { ensureDailyEnergy } from "@/lib/energy";
+import {
+  ensureDailyEnergy,
+  ensureWeeklyLeaderboardReset,
+} from "@/lib/energy";
 
 const DAY_IN_MS = 86_400_000;
 
@@ -36,11 +39,12 @@ export const getUserProgress = cache(async () => {
 
     if (!progress) return null;
 
-    const refreshedEnergy = await ensureDailyEnergy(progress);
+    const refreshed = await ensureDailyEnergy(progress);
 
     return {
       ...progress,
-      energy: refreshedEnergy,
+      energy: refreshed.energy,
+      points: refreshed.points,
       activeCourse: progress.activeCourse ?? null,
     };
   } catch (error) {
@@ -274,6 +278,8 @@ export const getUserSubscription = cache(async () => {
 export const getTopTenUsers = cache(async () => {
   const { userId } = await auth();
   if (!userId) return [];
+
+  await ensureWeeklyLeaderboardReset();
 
   return await db.query.userProgress.findMany({
     orderBy: (userProgress, { desc }) => [desc(userProgress.points)],

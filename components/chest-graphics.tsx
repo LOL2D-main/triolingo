@@ -22,9 +22,9 @@ export const ChestArtwork = ({
 }: ChestArtworkProps) => {
   const lidTransform =
     openStage === "cracked"
-      ? "translate(0, -18) rotate(-5, 160, 145)"
+      ? "translate(0, -14) rotate(-3.5, 160, 145)"
       : openStage === "opened"
-      ? "translate(0, -42) rotate(-14, 160, 145)"
+      ? "translate(0, -56) rotate(-18, 160, 145)"
       : "translate(0, 0)";
 
   if (tier === "wood") {
@@ -576,4 +576,140 @@ export const GemRewardPileGraphic = ({
     </svg>
   );
 };
+
+/**
+ * Minh hoa Cu Xanh cam Ruong Vang tren Banner Tim trang Nhiem Vu (Chuan y het anh mau)
+ */
+export const QuestsWelcomeMascotGraphic = ({
+  className = "w-44 h-40",
+}: {
+  className?: string;
+}) => {
+  return (
+    <svg
+      viewBox="0 0 220 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Ngoi sao 4 canh trang lap lanh phia tren ben phai ruong */}
+      <path
+        d="M114 14 L117 21 L124 24 L117 27 L114 34 L111 27 L104 24 L111 21 Z"
+        fill="#FFFFFF"
+        opacity="0.92"
+      />
+      {/* Ngoi sao 4 canh trang lap lanh phia duoi ben trai ruong */}
+      <path
+        d="M44 76 L47 83 L54 86 L47 89 L44 96 L41 89 L34 86 L41 83 Z"
+        fill="#FFFFFF"
+        opacity="0.95"
+      />
+
+      {/* Bong bau duc tim dam duoi chan cu */}
+      <ellipse cx="132" cy="180" rx="46" ry="10" fill="#744EB3" />
+
+      {/* RUONG VANG (nam tren canh tay phai cua cu giang cao) */}
+      <g transform="translate(52, 32)">
+        {/* Than ruong vang */}
+        <rect x="4" y="8" width="52" height="38" rx="5" fill="#FFC800" />
+        {/* O nau cam tren & duoi */}
+        <rect x="12" y="10" width="36" height="13" rx="2" fill="#CD7900" />
+        <rect x="12" y="16" width="36" height="4" fill="#A65E00" />
+        <rect x="12" y="29" width="36" height="13" rx="2" fill="#CD7900" />
+        <rect x="12" y="35" width="36" height="4" fill="#A65E00" />
+        {/* Dai ngang giua ruong */}
+        <rect x="2" y="21" width="56" height="8" rx="2" fill="#FFD83D" />
+        {/* Khoa vang giua */}
+        <rect x="23" y="18" width="14" height="15" rx="3" fill="#FFF085" />
+        <circle cx="30" cy="24" r="2" fill="#8C5000" />
+        <rect x="29" y="25" width="2" height="4" rx="1" fill="#8C5000" />
+      </g>
+
+      {/* NHAN VAT CU XANH DUOLINGO NHAY MUNG */}
+      <g transform="translate(74, 54)">
+        {/* Canh trai dua len do ruong */}
+        <path
+          d="M18 52 C2 38 -2 18 8 12 C16 8 28 24 30 44 Z"
+          fill="#58CC02"
+        />
+
+        {/* Canh phai vung ra sau */}
+        <path
+          d="M94 64 C112 68 118 88 108 98 C100 104 86 92 84 74 Z"
+          fill="#46A302"
+        />
+
+        {/* Than chinh cu xanh (hinh hat dau nghieng nang dong) */}
+        <path
+          d="M22 36 C22 14 46 6 68 10 C92 14 106 34 102 64 C98 94 78 112 52 110 C26 108 14 86 18 58 Z"
+          fill="#58CC02"
+        />
+
+        {/* 2 Tai nho tren dinh dau */}
+        <path d="M32 18 L24 4 L44 12 Z" fill="#58CC02" />
+        <path d="M84 16 L98 6 L94 24 Z" fill="#58CC02" />
+
+        {/* Bung xanh sang */}
+        <ellipse
+          cx="58"
+          cy="82"
+          rx="26"
+          ry="20"
+          transform="rotate(-6 58 82)"
+          fill="#78E026"
+        />
+        {/* Hoa tiet 3 vay long tren bung */}
+        <path
+          d="M46 74 Q52 80 58 74 M58 74 Q64 80 70 74 M52 86 Q58 92 64 86"
+          stroke="#58CC02"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+        />
+
+        {/* Vung mat kinh xanh la */}
+        <circle cx="44" cy="48" r="18" fill="#78E026" />
+        <circle cx="76" cy="52" r="18" fill="#78E026" />
+
+        {/* Trong trang mat to tron */}
+        <circle cx="44" cy="48" r="14" fill="#FFFFFF" />
+        <circle cx="76" cy="52" r="14" fill="#FFFFFF" />
+
+        {/* Con nguoi den + Diem sang trang */}
+        <circle cx="46" cy="48" r="7.5" fill="#1F2937" />
+        <circle cx="74" cy="52" r="7.5" fill="#1F2937" />
+        <circle cx="43" cy="45" r="2.8" fill="#FFFFFF" />
+        <circle cx="71" cy="49" r="2.8" fill="#FFFFFF" />
+
+        {/* Mo cam + Mieng cuoi */}
+        <path
+          d="M54 54 Q60 50 66 55 L60 66 Z"
+          fill="#FF9600"
+        />
+        <path
+          d="M55 60 Q60 69 65 61 Z"
+          fill="#FF4B4B"
+        />
+
+        {/* 2 Ban chan cam nhay len */}
+        <ellipse
+          cx="46"
+          cy="113"
+          rx="9"
+          ry="5.5"
+          transform="rotate(-15 46 113)"
+          fill="#FF9600"
+        />
+        <ellipse
+          cx="74"
+          cy="108"
+          rx="9"
+          ry="5.5"
+          transform="rotate(12 74 108)"
+          fill="#FF9600"
+        />
+      </g>
+    </svg>
+  );
+};
+
 

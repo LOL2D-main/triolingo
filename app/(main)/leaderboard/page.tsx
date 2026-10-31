@@ -9,12 +9,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { UserProgress } from "@/components/user-progress";
 import { VerticalBanner } from "@/components/vertical-banner";
+import { WeeklyLeaderboardTimer } from "@/components/weekly-leaderboard-timer";
 import {
   getTopTenUsers,
   getUserProgress,
   getUserSubscription,
 } from "@/db/queries";
 import { auth } from "@/lib/auth";
+import { getWeeklyResetRemainingMs } from "@/lib/energy";
 
 const LeaderboardPage = async () => {
   await auth.protect();
@@ -32,6 +34,7 @@ const LeaderboardPage = async () => {
   if (!userProgress || !userProgress.activeCourse) redirect("/courses");
 
   const isPro = !!userSubscription?.isActive;
+  const weeklyRemainingMs = getWeeklyResetRemainingMs();
 
   return (
     <div className="flex flex-row-reverse gap-[48px] px-3 sm:px-6">
@@ -50,7 +53,11 @@ const LeaderboardPage = async () => {
         {!isPro && <Promo />}
         <Quests
           lessonsCompleted={userProgress.questLessonsCompleted ?? 0}
-          chestClaimed={!!userProgress.questChest1Claimed}
+          listeningCompleted={userProgress.questListeningCompleted ?? 0}
+          highAccuracyCompleted={userProgress.questHighAccuracyCompleted ?? 0}
+          chest1Claimed={!!userProgress.questChest1Claimed}
+          chest2Claimed={!!userProgress.questChest2Claimed}
+          chest3Claimed={!!userProgress.questChest3Claimed}
         />
         <VerticalBanner />
       </StickyWrapper>
@@ -66,11 +73,13 @@ const LeaderboardPage = async () => {
           />
 
           <h1 className="my-4 sm:my-6 text-center text-xl sm:text-2xl font-black text-neutral-800">
-            Bảng xếp hạng
+            Bảng xếp hạng Tuần
           </h1>
-          <p className="mb-4 sm:mb-6 text-center text-xs sm:text-base text-muted-foreground px-2">
-            Xem thứ hạng của bạn so với những người học khác trong cộng đồng.
+          <p className="mb-3 text-center text-xs sm:text-base text-muted-foreground px-2">
+            Đua top KN hằng tuần cùng cộng đồng. Sau mỗi 7 ngày, điểm KN sẽ tự động đặt lại về 0 để bắt đầu tuần mới!
           </p>
+
+          <WeeklyLeaderboardTimer initialRemainingMs={weeklyRemainingMs} />
 
           <Separator className="mb-4 h-0.5 rounded-full" />
 

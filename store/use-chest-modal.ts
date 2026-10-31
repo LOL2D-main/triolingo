@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import type { ChestTier } from "@/constants";
+import type { ChestTier, DailyQuestId } from "@/constants";
 
 type OpenChestParams = {
   tier: ChestTier;
   rewardGems: number;
-  questId?: 1;
+  questId?: DailyQuestId;
   title?: string;
   description?: string;
 };
@@ -13,7 +13,7 @@ type ChestModalState = {
   isOpen: boolean;
   tier: ChestTier;
   rewardGems: number;
-  questId?: 1;
+  questId?: DailyQuestId;
   title?: string;
   description?: string;
   open: (params: OpenChestParams) => void;
