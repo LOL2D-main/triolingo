@@ -89,6 +89,7 @@ duolingo-clone/
     |-- streak-button.tsx
     |-- user-progress.tsx
     |-- vertical-banner.tsx
+    |-- weekly-leaderboard-timer.tsx
     |-- zalo-icon.tsx
   |- config/
     |-- index.ts
