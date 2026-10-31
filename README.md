@@ -153,7 +153,6 @@ duolingo-clone/
   |- tailwind.config.ts
   |- tsconfig.json
   |- vercel.json
-  |- vercel.ts
 ```
 <!--- FOLDER_STRUCTURE_END --->
 
