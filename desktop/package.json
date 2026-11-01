@@ -1,0 +1,46 @@
+{
+  "name": "triolingo-desktop",
+  "version": "1.0.1",
+  "description": "Triolingo - Ứng dụng học ngôn ngữ thông minh cho máy tính",
+  "main": "main.js",
+  "author": "Triolingo Team",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.triolingo.app",
+    "productName": "Triolingo",
+    "copyright": "Copyright © 2026 Triolingo",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Triolingo",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "uninstallDisplayName": "Triolingo",
+      "runAfterFinish": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0"
+  }
+}

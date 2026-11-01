@@ -41,3 +41,7 @@ next-env.d.ts
 /ngrok
 /stripe
 .neon
+
+# desktop electron
+/desktop/dist
+/desktop/node_modules
