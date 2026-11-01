@@ -22,6 +22,8 @@ type UnitProps = {
 };
 
 export const Unit = ({
+  id,
+  order,
   title,
   description,
   lessons,
@@ -31,7 +33,7 @@ export const Unit = ({
 }: UnitProps) => {
   return (
     <>
-      <UnitBanner title={title} description={description} />
+      <UnitBanner order={order} title={title} description={description} />
 
       <div className="relative flex flex-col items-center">
         {lessons.map((lesson, i) => {

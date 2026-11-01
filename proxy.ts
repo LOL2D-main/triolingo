@@ -6,8 +6,23 @@ const protectedRoutes = ["/learn", "/shop", "/quests", "/leaderboard", "/courses
 
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = request.cookies.get(AUTH_COOKIE_NAME);
+  const host = (request.headers.get("host") || "").toLowerCase();
 
+  // Neu truy cap tu ten mien rieng cua trang Download (triolingo-download.vercel.app)
+  if (host.startsWith("triolingo-download")) {
+    if (pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/download";
+      return NextResponse.rewrite(url);
+    }
+    if (["/windows", "/android", "/apple"].includes(pathname.toLowerCase())) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/download${pathname.toLowerCase()}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
+  const session = request.cookies.get(AUTH_COOKIE_NAME);
   const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
 
   if (isProtected && !session?.value) {

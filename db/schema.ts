@@ -245,3 +245,26 @@ export const campaignKeyRedemptions = pgTable(
   (t) => [unique().on(t.code, t.userId)]
 );
 
+
+/** Danh gia ung dung tren trang Triolingo Download (CH Play style, khong can dang nhap) */
+export const appReviews = pgTable("app_reviews", {
+  id: serial("id").primaryKey(),
+  authorName: text("author_name").notNull(),
+  rating: integer("rating").notNull().default(5),
+  comment: text("comment").notNull(),
+  platform: text("platform").notNull().default("Windows"),
+  helpfulCount: integer("helpful_count").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/** Luu tru lich su Vinh danh Top 1, 2, 3 cua moi tuan (khi sang dau tuan moi) */
+export const weeklyPodiumWinners = pgTable("weekly_podium_winners", {
+  id: serial("id").primaryKey(),
+  weekKey: text("week_key").notNull(),
+  rank: integer("rank").notNull(), // 1: Top 1, 2: Top 2, 3: Top 3
+  userId: text("user_id").notNull(),
+  userName: text("user_name").notNull(),
+  userImageSrc: text("user_image_src").notNull().default("/mascot.svg"),
+  points: integer("points").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

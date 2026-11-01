@@ -1,8 +1,8 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, gt, ne } from "drizzle-orm";
 
 import { DAILY_ENERGY } from "@/constants";
 import db from "@/db/drizzle";
-import { userProgress } from "@/db/schema";
+import { userProgress, weeklyPodiumWinners } from "@/db/schema";
 import { ADMIN_USER_ID } from "@/lib/admin-constants";
 
 const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -54,6 +54,40 @@ export function getWeeklyResetRemainingMs(): number {
 export async function ensureWeeklyLeaderboardReset(): Promise<string> {
   const currentWeekKey = getCurrentWeekKey();
   try {
+    // 1. Tim xem co hoc vien nao mang chu ky tuan cu va co diem KN > 0 khong
+    const outdatedUsers = await db.query.userProgress.findMany({
+      where: and(
+        ne(userProgress.pointsWeek, currentWeekKey),
+        gt(userProgress.points, 0),
+        ne(userProgress.userId, ADMIN_USER_ID)
+      ),
+      orderBy: (table, { desc }) => [desc(table.points)],
+    });
+
+    // Neu co tuan cu vua ket thuc va co diem, luu Top 1, 2, 3 vao bang vinh danh
+    if (outdatedUsers.length > 0) {
+      const previousWeekKey = outdatedUsers[0].pointsWeek || "PREV";
+      const existingWinners = await db.query.weeklyPodiumWinners.findMany({
+        where: eq(weeklyPodiumWinners.weekKey, previousWeekKey),
+      });
+
+      if (existingWinners.length === 0) {
+        const top3 = outdatedUsers.slice(0, 3);
+        for (let i = 0; i < top3.length; i++) {
+          const winner = top3[i];
+          await db.insert(weeklyPodiumWinners).values({
+            weekKey: previousWeekKey,
+            rank: i + 1,
+            userId: winner.userId,
+            userName: winner.userName,
+            userImageSrc: winner.userImageSrc,
+            points: winner.points,
+          });
+        }
+      }
+    }
+
+    // 2. Reset diem KN ve 0 va cap nhat sang ma tuan moi
     await db
       .update(userProgress)
       .set({

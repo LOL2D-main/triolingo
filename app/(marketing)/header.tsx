@@ -40,6 +40,11 @@ export const Header = () => {
           </Link>
 
           <div className="flex items-center gap-x-3">
+            <Link href="/download">
+              <Button size="sm" variant="primaryOutline">
+                Tải ứng dụng
+              </Button>
+            </Link>
             {!isLoaded ? null : isSignedIn ? (
               <div className="flex items-center gap-x-3">
                 <Link href="/learn" className="flex items-center gap-x-2">

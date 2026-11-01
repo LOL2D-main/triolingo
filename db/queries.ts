@@ -13,6 +13,7 @@ import {
   units,
   userProgress,
   userSubscription,
+  weeklyPodiumWinners,
 } from "./schema";
 import {
   ensureDailyEnergy,
@@ -275,20 +276,36 @@ export const getUserSubscription = cache(async () => {
   };
 });
 
-export const getTopTenUsers = cache(async () => {
+export const getLeaderboardUsers = cache(async () => {
   const { userId } = await auth();
   if (!userId) return [];
 
   await ensureWeeklyLeaderboardReset();
 
+  // Mở full tất cả người dùng đã tạo tài khoản, sắp xếp theo KN từ cao xuống thấp
   return await db.query.userProgress.findMany({
     orderBy: (userProgress, { desc }) => [desc(userProgress.points)],
-    limit: 10,
     columns: {
       userId: true,
       userName: true,
       userImageSrc: true,
       points: true,
+      streakCount: true,
     },
   });
+});
+
+export const getTopTenUsers = getLeaderboardUsers;
+
+export const getPreviousWeekWinners = cache(async () => {
+  try {
+    const winners = await db.query.weeklyPodiumWinners.findMany({
+      orderBy: (table, { desc, asc }) => [desc(table.weekKey), asc(table.rank)],
+      limit: 3,
+    });
+    return winners;
+  } catch (error) {
+    console.error("Failed to get previous week winners:", error);
+    return [];
+  }
 });
