@@ -10,10 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { UserProgress } from "@/components/user-progress";
 import { VerticalBanner } from "@/components/vertical-banner";
 import { WeeklyLeaderboardTimer } from "@/components/weekly-leaderboard-timer";
-import {
-  LeaderboardPodium,
-  PreviousWeekHonor,
-} from "@/components/leaderboard/podium";
+import { WeeklyHonorSection } from "@/components/leaderboard/weekly-honor-section";
 import {
   getLeaderboardUsers,
   getPreviousWeekWinners,
@@ -21,7 +18,10 @@ import {
   getUserSubscription,
 } from "@/db/queries";
 import { auth } from "@/lib/auth";
-import { getWeeklyResetRemainingMs } from "@/lib/energy";
+import {
+  getWeeklyResetRemainingMs,
+  isWeekEndedCelebrationPeriod,
+} from "@/lib/energy";
 
 const LeaderboardPage = async () => {
   await auth.protect();
@@ -44,6 +44,7 @@ const LeaderboardPage = async () => {
 
   const isPro = !!userSubscription?.isActive;
   const weeklyRemainingMs = getWeeklyResetRemainingMs();
+  const isCelebrationTime = isWeekEndedCelebrationPeriod();
 
   return (
     <div className="flex flex-row-reverse gap-[48px] px-3 sm:px-6">
@@ -91,11 +92,11 @@ const LeaderboardPage = async () => {
 
           <WeeklyLeaderboardTimer initialRemainingMs={weeklyRemainingMs} />
 
-          {/* Vinh danh Quán quân tuần trước (sang đầu tuần mới) */}
-          <PreviousWeekHonor winners={previousWinners} />
-
-          {/* Bục vinh danh Top 1, 2, 3 hiện tại */}
-          <LeaderboardPodium topUsers={leaderboard.slice(0, 3)} />
+          {/* Bảng vinh danh chỉ hiện khi hết tuần (sang đầu tuần mới), ngày thường mặc định ẩn */}
+          <WeeklyHonorSection
+            winners={previousWinners}
+            isCelebrationTime={isCelebrationTime}
+          />
 
           <div className="w-full flex items-center justify-between mt-2 mb-3 px-2">
             <span className="text-xs sm:text-sm font-extrabold text-neutral-700 uppercase tracking-wide">
@@ -116,11 +117,11 @@ const LeaderboardPage = async () => {
 
               const rankBadgeClass =
                 rank === 1
-                  ? "bg-amber-400 text-amber-950 font-black"
+                  ? "bg-amber-400 text-amber-950 font-black ring-2 ring-amber-200"
                   : rank === 2
-                  ? "bg-slate-300 text-slate-800 font-black"
+                  ? "bg-slate-300 text-slate-800 font-black ring-2 ring-slate-200"
                   : rank === 3
-                  ? "bg-amber-600 text-white font-black"
+                  ? "bg-amber-600 text-white font-black ring-2 ring-amber-100"
                   : "text-neutral-500 font-extrabold";
 
               return (

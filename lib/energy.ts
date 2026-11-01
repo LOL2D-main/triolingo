@@ -41,6 +41,13 @@ export function getDailyResetRemainingMs(): number {
 /**
  * Tinh thoi gian con lai (ms) den khi ket thuc chu ky tuan 7D (reset KN ve 0)
  */
+export function isWeekEndedCelebrationPeriod(): boolean {
+  const vnNowMs = Date.now() + VN_OFFSET_MS;
+  const elapsedWeek =
+    (((vnNowMs - EPOCH_MONDAY_VN_MS) % WEEK_MS) + WEEK_MS) % WEEK_MS;
+  return elapsedWeek < 48 * 60 * 60 * 1000;
+}
+
 export function getWeeklyResetRemainingMs(): number {
   const vnNowMs = Date.now() + VN_OFFSET_MS;
   const elapsedWeek =
