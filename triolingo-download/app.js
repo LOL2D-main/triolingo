@@ -180,3 +180,4 @@ function increaseHelpful(id, btn) {
 document.addEventListener("DOMContentLoaded", () => {
   renderReviews();
 });
+

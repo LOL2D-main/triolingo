@@ -22,3 +22,4 @@ Website chính thức tải ứng dụng **Triolingo** chuẩn phong cách Googl
    npm start
    ```
    Mở trình duyệt truy cập: `http://localhost:8080`
+
