@@ -5,7 +5,8 @@ Website chính thức tải ứng dụng **Triolingo** chuẩn phong cách Googl
 ## Cấu trúc thư mục:
 - `index.html`: Trang chủ Store với 3 nền tảng (Windows, Android, Apple), 8 ảnh chụp màn hình thực tế, thống kê và hệ thống đánh giá sao (không cần đăng nhập).
 - `windows.html`: Trang chi tiết tải bản Windows `.exe` (114 MB) kèm hướng dẫn cài đặt 3 bước.
-- `android.html`: Trang chi tiết tải bản Android (APK & Google Play).
+- `android.html`: Trang chi tiết tải bản Android kèm file `triolingo.apk` (10 MB).
+- `triolingo.apk`: File cài đặt chính thức cho điện thoại Android (v1.0.1, 9.7 MB).
 - `apple.html`: Hướng dẫn chi tiết tạo App Safari ra màn hình chính trên iPhone & iPad với 4 bước minh họa.
 - `style.css`: Toàn bộ CSS phong cách Google Play Store, responsive, không emoji, sạch và tối ưu.
 - `app.js`: Xử lý đánh giá sao, bình luận không cần đăng nhập, lưu trữ localStorage, nút hữu ích.

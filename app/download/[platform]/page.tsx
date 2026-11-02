@@ -21,8 +21,8 @@ const VALID_PLATFORMS: Record<string, { key: PlatformKey; title: string; desc: s
   },
   android: {
     key: "android",
-    title: "Tải Triolingo cho Android - Hướng dẫn cài đặt chi tiết",
-    desc: "Tải và cài đặt ứng dụng học ngoại ngữ Triolingo trên điện thoại và máy tính bảng Android.",
+    title: "Tải Triolingo cho Android (.apk) - Bản cài đặt chính thức 10 MB",
+    desc: "Tải xuống file cài đặt triolingo.apk chính thức cho điện thoại và máy tính bảng Android (8.0+).",
   },
   apple: {
     key: "apple",

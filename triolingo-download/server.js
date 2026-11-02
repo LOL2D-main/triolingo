@@ -14,6 +14,7 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.exe': 'application/octet-stream',
+  '.apk': 'application/vnd.android.package-archive',
 };
 
 const server = http.createServer((req, res) => {

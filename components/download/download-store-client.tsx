@@ -25,6 +25,9 @@ export type PlatformKey = "overview" | "windows" | "android" | "apple";
 export const WINDOWS_EXE_DOWNLOAD_URL =
   "https://github.com/LOL2D-main/triolingo/releases/download/v1.0.1/Triolingo-Setup-1.0.1.exe";
 
+export const ANDROID_APK_DOWNLOAD_URL =
+  "https://github.com/LOL2D-main/triolingo/releases/download/v1.0.1/triolingo.apk";
+
 const APP_SCREENSHOTS = [
   {
     src: "/screenshots/screen-home.png",
@@ -426,14 +429,19 @@ export const DownloadStoreClient = ({
                   <span>Hướng dẫn cho iPhone / iPad</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleSelectPlatform("android")}
+                <a
+                  href={ANDROID_APK_DOWNLOAD_URL}
+                  download="triolingo.apk"
+                  onClick={() => {
+                    toast.success(
+                      "Đang tải xuống bộ cài đặt triolingo.apk (10 MB) cho Android..."
+                    );
+                  }}
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#DADCE0] bg-white px-5 py-3 text-sm font-medium text-[#202124] transition-colors hover:bg-[#F8F9FA]"
                 >
                   <AndroidLogoSvg className="h-4 w-4" />
-                  <span>Bản cho Android</span>
-                </button>
+                  <span>Tải cho Android (.apk)</span>
+                </a>
               </div>
             </div>
           </div>
@@ -643,7 +651,7 @@ export const DownloadStoreClient = ({
                       Giao diện tối ưu riêng cho màn hình cảm ứng điện thoại với thanh điều hướng nổi bên dưới.
                     </p>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#5F6368]">
-                      <span>Định dạng: Bộ cài APK / Web App</span>
+                      <span>Định dạng: Bộ cài APK chính thức (10 MB)</span>
                       <span>•</span>
                       <span>Yêu cầu: Android 8.0+</span>
                     </div>
@@ -651,18 +659,26 @@ export const DownloadStoreClient = ({
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row md:shrink-0">
-                  <button
-                    type="button"
+                  <a
+                    href={ANDROID_APK_DOWNLOAD_URL}
+                    download="triolingo.apk"
                     onClick={() =>
-                      toast.info(
-                        "Bản cài đặt APK đang được cập nhật đường dẫn tải mới nhất. Bạn cũng có thể chọn Thêm vào màn hình chính từ Chrome!"
+                      toast.success(
+                        "Đang tải xuống bộ cài đặt triolingo.apk (10 MB)..."
                       )
                     }
                     className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#01875F] px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#016848]"
                   >
                     <AndroidLogoSvg className="h-4 w-4 brightness-200 invert" />
                     <span>Tải xuống cho Android (.apk)</span>
-                  </button>
+                  </a>
+                  <a
+                    href="/triolingo.apk"
+                    download="triolingo.apk"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#DADCE0] bg-white px-4 py-3.5 text-xs font-medium text-[#5F6368] hover:text-[#202124]"
+                  >
+                    Link dự phòng
+                  </a>
                 </div>
               </div>
 
