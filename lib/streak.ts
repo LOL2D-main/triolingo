@@ -37,6 +37,14 @@ export function getVietnamYesterday(): string {
   return vnYesterday.toISOString().slice(0, 10);
 }
 
+/** Lay ngay cach day N ngay theo gio Viet Nam (GMT+7) dinh dang YYYY-MM-DD */
+export function getVietnamDaysAgo(days: number): string {
+  const d = new Date();
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  const vnDate = new Date(utc + 7 * 3600000 - days * 86400000);
+  return vnDate.toISOString().slice(0, 10);
+}
+
 /** Kiem tra xem chuoi da duoc thap sang trong ngay hom nay chua */
 export function isStreakLitToday(lastStreakDate: string | null | undefined): boolean {
   if (!lastStreakDate) return false;

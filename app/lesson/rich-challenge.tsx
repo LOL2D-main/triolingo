@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Volume2 } from "lucide-react";
+import { Mic, MicOff, Volume2 } from "lucide-react";
 
 import { InteractiveText } from "@/components/interactive-text";
 import type { Exercise, SpeakerId } from "@/lib/exercise-types";
@@ -483,9 +483,10 @@ const Choice = ({
   const chosen = typeof selectedAnswer === "string" ? selectedAnswer : "";
   const userAvatar = speaker === "boy" ? "/girl.svg" : "/boy.svg";
 
-  // Neu cau hoi co prompt trung voi dap an dung, day la dang cau hoi Nghe va Chon dap an:
-  // Khong duoc hien chu trong bong thoai vi se lo dap an, ma de trong chi co bieu tuong loa + song am!
+  // Neu cau hoi co hideText = true hoac prompt trung voi dap an dung, day la dang Nghe va Chon:
+  // Khong hien chu trong bong thoai ma de bieu tuong loa + song am!
   const isListeningChoice =
+    Boolean(exercise.hideText) ||
     !exercise.prompt ||
     exercise.options.some(
       (opt) =>
@@ -604,6 +605,212 @@ const Choice = ({
   );
 };
 
+const SpeakChallenge = ({
+  exercise,
+  speaker,
+  selectedAnswer,
+  onSelect,
+  onSkip,
+  locked,
+}: {
+  exercise: Extract<Exercise, { kind: "speak" }>;
+  speaker: SpeakerId;
+  selectedAnswer?: string | number;
+  onSelect: (v: string) => void;
+  onSkip?: () => void;
+  locked: boolean;
+}) => {
+  const [isListening, setIsListening] = useState(false);
+  const [heardText, setHeardText] = useState("");
+  const [speechError, setSpeechError] = useState("");
+
+  const startRecording = () => {
+    if (locked || isListening) return;
+    setSpeechError("");
+
+    const WinSpeech =
+      typeof window !== "undefined"
+        ? (window as unknown as {
+            SpeechRecognition?: new () => {
+              lang: string;
+              interimResults: boolean;
+              maxAlternatives: number;
+              onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+              onerror: (() => void) | null;
+              onend: (() => void) | null;
+              start: () => void;
+            };
+            webkitSpeechRecognition?: new () => {
+              lang: string;
+              interimResults: boolean;
+              maxAlternatives: number;
+              onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+              onerror: (() => void) | null;
+              onend: (() => void) | null;
+              start: () => void;
+            };
+          })
+        : null;
+
+    const Rec = WinSpeech?.SpeechRecognition || WinSpeech?.webkitSpeechRecognition;
+    if (!Rec) {
+      setSpeechError("Trình duyệt chưa hỗ trợ thu âm trực tiếp. Hãy nhấn nghe mẫu và xác nhận bên dưới.");
+      return;
+    }
+
+    try {
+      const rec = new Rec();
+      rec.lang = "en-US";
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      setIsListening(true);
+
+      rec.onresult = (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript || "";
+        setHeardText(transcript);
+        onSelect(transcript || exercise.text);
+      };
+      rec.onerror = () => {
+        setSpeechError("Không nhận diện được giọng nói, hãy thử lại hoặc nhấn xác nhận.");
+        setIsListening(false);
+      };
+      rec.onend = () => {
+        setIsListening(false);
+      };
+      rec.start();
+    } catch {
+      setIsListening(false);
+      setSpeechError("Không thể bật micro lúc này.");
+    }
+  };
+
+  const chosen = typeof selectedAnswer === "string" ? selectedAnswer : "";
+
+  return (
+    <>
+      <Title>Đọc to câu sau</Title>
+
+      <div className="mb-8 flex items-start gap-3">
+        <Avatar src={SPEAKER_IMAGE_MAP[speaker]} />
+        <Bubble className="flex-1">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => speakEnglish(exercise.text, { speaker })}
+              className="shrink-0 text-sky-500 hover:text-sky-600"
+              aria-label="Nghe phát âm"
+            >
+              <Volume2 className="h-6 w-6" />
+            </button>
+            <div>
+              <p className="font-bold text-neutral-800">{exercise.text}</p>
+              {exercise.meaning && (
+                <p className="mt-1 text-sm font-medium text-neutral-500">
+                  {exercise.meaning}
+                </p>
+              )}
+            </div>
+          </div>
+        </Bubble>
+      </div>
+
+      <div className="mt-auto flex flex-col items-center gap-4 pt-6">
+        <button
+          type="button"
+          disabled={locked}
+          onClick={startRecording}
+          className={cn(
+            "flex w-full max-w-md items-center justify-center gap-3 rounded-2xl border-2 border-b-4 px-6 py-4 text-base font-extrabold transition active:translate-y-px active:border-b-2",
+            isListening
+              ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+              : chosen
+                ? "border-sky-400 bg-sky-50 text-sky-600"
+                : "border-slate-200 bg-white text-sky-500 hover:bg-slate-50"
+          )}
+        >
+          {isListening ? (
+            <Mic className="h-6 w-6 text-emerald-600" />
+          ) : (
+            <MicOff className="h-6 w-6 text-sky-500 hidden" />
+          )}
+          {!isListening && <Mic className="h-6 w-6 text-sky-500" />}
+          <span>
+            {isListening
+              ? "Đang lắng nghe giọng nói của bạn..."
+              : heardText
+                ? `Đã thu âm: "${heardText}"`
+                : "NHẤN ĐỂ NÓI"}
+          </span>
+        </button>
+
+        {speechError && (
+          <p className="text-center text-xs font-medium text-amber-600">
+            {speechError}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <button
+            type="button"
+            disabled={locked}
+            onClick={() => onSelect(exercise.text)}
+            className="text-sm font-extrabold uppercase tracking-wide text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+          >
+            Tôi đã đọc to rõ ràng
+          </button>
+
+          {onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              disabled={locked}
+              className="text-sm font-extrabold uppercase tracking-wide text-slate-400 hover:text-slate-500 disabled:opacity-50"
+            >
+              Hiện không nói được
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+const WriteChallenge = ({
+  exercise,
+  selectedAnswer,
+  onSelect,
+  locked,
+}: {
+  exercise: Extract<Exercise, { kind: "write" }>;
+  selectedAnswer?: string | number;
+  onSelect: (v: string) => void;
+  locked: boolean;
+}) => {
+  const val = typeof selectedAnswer === "string" ? selectedAnswer : "";
+
+  return (
+    <>
+      <Title>{exercise.title || "Viết câu trả lời bằng tiếng Anh"}</Title>
+
+      {exercise.promptVi && (
+        <div className="mb-6 flex items-start gap-3">
+          <Avatar src={SPEAKER_IMAGE_MAP.mascot} />
+          <Bubble className="font-semibold">{exercise.promptVi}</Bubble>
+        </div>
+      )}
+
+      <textarea
+        value={val}
+        disabled={locked}
+        onChange={(e) => onSelect(e.target.value)}
+        placeholder="Nhập câu trả lời tiếng Anh của bạn..."
+        rows={4}
+        className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 p-4 text-base font-semibold text-neutral-800 focus:border-sky-400 focus:bg-white focus:outline-none"
+      />
+    </>
+  );
+};
+
 /* ------------------------------------------------------------------ */
 
 export const RichChallenge = ({
@@ -622,6 +829,8 @@ export const RichChallenge = ({
   useEffect(() => {
     if ("audio" in exercise && exercise.audio) {
       speakEnglish(exercise.audio, { speaker });
+    } else if (exercise.kind === "speak" && exercise.text) {
+      speakEnglish(exercise.text, { speaker });
     }
   }, [exercise, speaker]);
 
@@ -694,6 +903,28 @@ export const RichChallenge = ({
           selectedAnswer={selectedAnswer}
           onSelect={handleSelect}
           status={status}
+          locked={locked}
+        />
+      );
+      break;
+    case "speak":
+      body = (
+        <SpeakChallenge
+          exercise={exercise}
+          speaker={speaker}
+          selectedAnswer={selectedAnswer}
+          onSelect={handleSelect}
+          onSkip={onSkip}
+          locked={locked}
+        />
+      );
+      break;
+    case "write":
+      body = (
+        <WriteChallenge
+          exercise={exercise}
+          selectedAnswer={selectedAnswer}
+          onSelect={handleSelect}
           locked={locked}
         />
       );

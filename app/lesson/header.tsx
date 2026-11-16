@@ -2,7 +2,7 @@ import { InfinityIcon, X } from "lucide-react";
 import Image from "next/image";
 
 import { Progress } from "@/components/ui/progress";
-import { DAILY_ENERGY } from "@/constants";
+import { DAILY_ENERGY, MAX_HEARTS } from "@/constants";
 import { useExitModal } from "@/store/use-exit-modal";
 
 type HeaderProps = {
@@ -12,16 +12,22 @@ type HeaderProps = {
   energy?: number;
   hasActiveSubscription: boolean;
   isLegendary?: boolean;
+  mode?: "normal" | "legendary" | "jump" | "practice";
 };
 
 export const Header = ({
+  hearts = MAX_HEARTS,
   gems = 100,
   percentage,
   energy = DAILY_ENERGY,
   hasActiveSubscription,
   isLegendary,
+  mode = "normal",
 }: HeaderProps) => {
   const { open } = useExitModal();
+
+  const isJump = mode === "jump";
+  const isPractice = mode === "practice";
 
   return (
     <header className="mx-auto flex w-full max-w-[1140px] items-center justify-between gap-x-2 sm:gap-x-4 px-3 sm:px-6 pt-3 sm:pt-5 lg:pt-[30px]">
@@ -38,37 +44,66 @@ export const Header = ({
         <Progress value={percentage} />
       </div>
 
-      {isLegendary && (
+      {isLegendary && !isJump && (
         <span className="shrink-0 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-950 shadow-sm">
           Huyền Thoại
         </span>
       )}
 
+      {isJump && (
+        <span className="shrink-0 rounded-full bg-[#ce287f] px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-black uppercase tracking-wider text-white shadow-sm">
+          Học vượt
+        </span>
+      )}
+
+      {isPractice && (
+        <span className="shrink-0 rounded-full bg-sky-500 px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-black uppercase tracking-wider text-white shadow-sm">
+          Luyện tập
+        </span>
+      )}
+
       <div className="flex shrink-0 items-center gap-x-2 sm:gap-x-4">
-        {/* Nang luong */}
-        <div
-          className="flex items-center gap-x-1 font-extrabold text-pink-500"
-          title={
-            hasActiveSubscription
-              ? "Gói Ultra: Năng lượng vô hạn"
-              : "Năng lượng làm bài"
-          }
-        >
-          <Image
-            src={hasActiveSubscription ? "/enery_ultra.png" : "/energy.png"}
-            alt="Năng lượng"
-            width={28}
-            height={18}
-            className="block h-[18px] w-[28px] sm:h-[20px] sm:w-[32px] object-contain"
-          />
-          <span className="text-xs sm:text-base font-black">
-            {hasActiveSubscription ? (
-              <InfinityIcon className="h-4 w-4 sm:h-5 sm:w-5 stroke-[3] text-purple-600" />
-            ) : (
-              energy
-            )}
-          </span>
-        </div>
+        {isJump ? (
+          /* Che do Hoc vuot: KHONG tinh nang luong, tinh 5 Trai tim */
+          <div
+            className="flex items-center gap-x-1.5 font-extrabold text-rose-500"
+            title="Trái tim còn lại (Sai 5 lần sẽ kết thúc bài Học vượt)"
+          >
+            <Image
+              src="/heart.svg"
+              alt="Trái tim"
+              width={24}
+              height={24}
+              className="block h-[22px] w-[22px] sm:h-[26px] sm:w-[26px] object-contain"
+            />
+            <span className="text-sm sm:text-base font-black">{hearts}</span>
+          </div>
+        ) : (
+          /* Nang luong */
+          <div
+            className="flex items-center gap-x-1 font-extrabold text-pink-500"
+            title={
+              hasActiveSubscription
+                ? "Gói Ultra: Năng lượng vô hạn"
+                : "Năng lượng làm bài"
+            }
+          >
+            <Image
+              src={hasActiveSubscription ? "/enery_ultra.png" : "/energy.png"}
+              alt="Năng lượng"
+              width={28}
+              height={18}
+              className="block h-[18px] w-[28px] sm:h-[20px] sm:w-[32px] object-contain"
+            />
+            <span className="text-xs sm:text-base font-black">
+              {hasActiveSubscription ? (
+                <InfinityIcon className="h-4 w-4 sm:h-5 sm:w-5 stroke-[3] text-purple-600" />
+              ) : (
+                energy
+              )}
+            </span>
+          </div>
+        )}
 
         {/* Da quy Gem */}
         <div

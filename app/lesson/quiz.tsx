@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Share2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,9 +9,10 @@ import { useMount, useWindowSize } from "react-use";
 import { toast } from "sonner";
 
 import {
+  completeJumpUnit,
   completeLessonBonus,
+  completePracticeSession,
   submitChallengeAnswer,
-  upsertChallengeProgress,
 } from "@/actions/challenge-progress";
 import { Button } from "@/components/ui/button";
 import { DAILY_ENERGY, MAX_HEARTS } from "@/constants";
@@ -50,6 +51,10 @@ type QuizProps = {
       })
     | null;
   isLegendary?: boolean;
+  mode?: "normal" | "legendary" | "jump" | "practice";
+  jumpUnitId?: number;
+  jumpUnitOrder?: number;
+  practiceMode?: string;
 };
 
 export const Quiz = ({
@@ -63,7 +68,16 @@ export const Quiz = ({
   initialLessonChallenges,
   userSubscription,
   isLegendary = false,
+  mode,
+  jumpUnitId,
+  jumpUnitOrder,
+  practiceMode,
 }: QuizProps) => {
+  const effectiveMode =
+    mode ?? (isLegendary ? "legendary" : "normal");
+  const isJumpMode = effectiveMode === "jump";
+  const isPracticeMode = effectiveMode === "practice";
+
   const { animations, playSound, triggerVibrate } = useSettings();
   const { width, height } = useWindowSize();
 
@@ -73,19 +87,29 @@ export const Quiz = ({
   const { open: openPracticeModal } = usePracticeModal();
   const { open: openEnergyModal } = useEnergyModal();
 
-  // Vocab preview modal
-  const hasVocab = Boolean(lessonVocab && lessonVocab.length > 0);
+  // Vocab preview modal (khong bat trong che do Hoc vuot / Luyen tap)
+  const hasVocab =
+    !isJumpMode &&
+    !isPracticeMode &&
+    Boolean(lessonVocab && lessonVocab.length > 0);
   const [isVocabOpen, setIsVocabOpen] = useState(
     () => hasVocab && initialPercentage !== 100
   );
 
   useMount(() => {
-    if (initialPercentage === 100) openPracticeModal();
+    if (!isJumpMode && !isPracticeMode && initialPercentage === 100) {
+      openPracticeModal();
+    }
   });
 
   const [lessonId] = useState(initialLessonId);
-  const [gems, setGems] = useState(initialGems);
+  const [gems] = useState(initialGems);
   const [energy, setEnergy] = useState(initialEnergy);
+  const [jumpHearts, setJumpHearts] = useState(
+    isJumpMode ? MAX_HEARTS : initialHearts
+  );
+  const [isJumpFailed, setIsJumpFailed] = useState(false);
+
   const [streak, setStreak] = useState(0);
   const [startTime] = useState<number>(() => Date.now());
   const [mistakesCount, setMistakesCount] = useState(0);
@@ -96,7 +120,9 @@ export const Quiz = ({
 
   const [challengesList, setChallengesList] = useState(initialLessonChallenges);
   const [totalQuestions] = useState(initialLessonChallenges.length);
-  const [correctAnswerText, setCorrectAnswerText] = useState<string | null>(null);
+  const [correctAnswerText, setCorrectAnswerText] = useState<string | null>(
+    null
+  );
   const [activeIndex, setActiveIndex] = useState(() => {
     const uncompletedIndex = challengesList.findIndex(
       (challenge) => !challenge.completed
@@ -106,11 +132,16 @@ export const Quiz = ({
 
   const [selectedOption, setSelectedOption] = useState<number | string>();
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
+  const completedSubmittedRef = useRef(false);
 
   const challenge = challengesList[activeIndex];
   const options = challenge?.challengeOptions ?? [];
 
   const onNext = () => {
+    if (isJumpMode && jumpHearts <= 0) {
+      setIsJumpFailed(true);
+      return;
+    }
     setActiveIndex((current) => current + 1);
   };
 
@@ -119,13 +150,16 @@ export const Quiz = ({
     setSelectedOption(val);
   };
 
-  // override: dung cho nut "Hien khong nghe duoc" (bo qua = tinh sai)
+  // override: dung cho nut "Hien khong nghe duoc" / "Hien khong noi duoc" (bo qua = tinh sai)
   const onContinue = (override?: unknown) => {
-    const answer =
-      typeof override === "string" ? override : selectedOption;
-    if (answer === undefined || answer === "") return;
+    const answer = typeof override === "string" ? override : selectedOption;
+    if (status === "none" && (answer === undefined || answer === "")) return;
 
     if (status === "wrong") {
+      if (isJumpMode && jumpHearts <= 0) {
+        setIsJumpFailed(true);
+        return;
+      }
       onNext();
       setStatus("none");
       setSelectedOption(undefined);
@@ -149,7 +183,7 @@ export const Quiz = ({
       s
         .trim()
         .toLowerCase()
-        .replace(/[.!?,]/g, "")
+        .replace(/[.!?,']/g, "")
         .replace(/\s+/g, " ");
 
     if (challenge.type === "EXERCISE" && challenge.payload) {
@@ -178,6 +212,22 @@ export const Quiz = ({
       } else if (p.kind === "build") {
         isCorrect = norm(String(answer)) === norm(p.answer);
         computedCorrectAnswer = p.answer;
+      } else if (p.kind === "speak") {
+        if (answer === "__skip__") {
+          isCorrect = false;
+        } else {
+          const targetWords = norm(p.text).split(" ").filter(Boolean);
+          const spokenWords = new Set(norm(String(answer)).split(" ").filter(Boolean));
+          const hits = targetWords.filter((w) => spokenWords.has(w)).length;
+          isCorrect =
+            norm(String(answer)) === norm(p.text) ||
+            (targetWords.length > 0 && hits / targetWords.length >= 0.5);
+        }
+        computedCorrectAnswer = p.text;
+      } else if (p.kind === "write") {
+        const typed = norm(String(answer));
+        isCorrect = p.accepted.some((acc) => norm(acc) === typed);
+        computedCorrectAnswer = p.accepted[0] || "";
       } else {
         isCorrect = true;
       }
@@ -188,7 +238,7 @@ export const Quiz = ({
       computedCorrectAnswer = correctOption?.text || "";
     }
 
-    // 2. Phan hoi ngay lap tuc tren giao dien (0ms delay - cuc nhanh khong phai cho mang)
+    // 2. Phan hoi ngay lap tuc tren giao dien
     if (isCorrect) {
       const nextStreak = streak + 1;
       setStreak(nextStreak);
@@ -207,81 +257,198 @@ export const Quiz = ({
       triggerVibrate([100, 50, 100]);
       setStatus("wrong");
       setCorrectAnswerText(computedCorrectAnswer);
-      setChallengesList((prev) => [
-        ...prev,
-        { ...challenge, completed: false },
-      ]);
+
+      if (isJumpMode) {
+        const remainingHearts = Math.max(0, jumpHearts - 1);
+        setJumpHearts(remainingHearts);
+        if (remainingHearts === 0) {
+          toast.error("Bạn đã sai đủ 5 lần và hết trái tim!");
+          setTimeout(() => {
+            setIsJumpFailed(true);
+          }, 900);
+        } else {
+          toast.warning(`Mất 1 trái tim! Còn ${remainingHearts}/5 trái tim.`);
+        }
+      } else {
+        setChallengesList((prev) => [
+          ...prev,
+          { ...challenge, completed: false },
+        ]);
+      }
     }
 
-    // 3. Dong bo len Server trong nen
-    startTransition(() => {
-      submitChallengeAnswer({
-        challengeId: challenge.id,
-        isCorrect,
-        streak,
-        isLegendary,
-      })
-        .then((res) => {
-          if (res?.error === "energy") {
-            openEnergyModal();
-            return;
-          }
-
-          if (res?.energy !== undefined) {
-            setEnergy(res.energy);
-          }
-
-          if (isCorrect && res?.comboBonus && res.comboBonus > 0) {
-            toast.success(
-              `Thưởng ${res.stageLabel || "Mức 1"}! Đúng liên tiếp ${streak + 1} câu (+${res.comboBonus} năng lượng)`
-            );
-          }
+    // 3. Dong bo len Server trong nen (KHONG tru energy trong che do jump)
+    if (!isJumpMode) {
+      startTransition(() => {
+        submitChallengeAnswer({
+          challengeId: challenge.id,
+          isCorrect,
+          streak,
+          isLegendary,
+          mode: effectiveMode,
+          practiceMode,
         })
-        .catch(() => {
-          // Bo qua loi tam thoi
-        });
-    });
+          .then((res) => {
+            if (res?.error === "energy") {
+              openEnergyModal();
+              return;
+            }
+
+            if (res?.energy !== undefined) {
+              setEnergy(res.energy);
+            }
+
+            if (isCorrect && res?.comboBonus && res.comboBonus > 0) {
+              toast.success(
+                `Thưởng ${res.stageLabel || "Mức 1"}! Đúng liên tiếp ${streak + 1} câu (+${res.comboBonus} năng lượng)`
+              );
+            }
+          })
+          .catch(() => {
+            // Bo qua loi tam thoi
+          });
+      });
+    }
   };
 
-  // Hoan thanh bai hoc: Phat am thanh va cong thuong Muc 2 (+4 nang luong, Huyen thoai +45 KN)
+  // Hoan thanh bai hoc / Hoc vuot / Luyen tap
   useEffect(() => {
-    if (!challenge) {
+    if (!challenge && !isJumpFailed && !completedSubmittedRef.current) {
+      completedSubmittedRef.current = true;
       playSound("/finish.mp3");
       const totalAttempts = Math.max(1, totalQuestions + mistakesCount);
       const computedAccuracy = Math.min(
         100,
         Math.max(10, Math.round((totalQuestions / totalAttempts) * 100))
       );
-      completeLessonBonus(lessonId, {
-        isLegendary,
-        accuracy: computedAccuracy,
-      }).then((res) => {
-        if (res?.bonus) {
-          setEnergy(res.energy);
-          toast.success(
-            isLegendary
-              ? `Hoàn thành Cấp độ Huyền Thoại! Thưởng +45 KN và +${res.bonus} Năng lượng`
-              : `Hoàn thành bài học! Thưởng Mức 2: +${res.bonus} Năng lượng`
-          );
-        }
-      });
-    }
-  }, [challenge, lessonId, playSound, isLegendary, totalQuestions, mistakesCount]);
 
-  // Man hinh ket thuc bai hoc (Chuan thiet ke Duolingo / Anh 1)
+      if (isJumpMode && jumpUnitId) {
+        completeJumpUnit(jumpUnitId).then((res) => {
+          if (res?.success) {
+            toast.success(
+              `Chúc mừng! Bạn đã học vượt thành công và mở khóa Chương ${res.unlockedUnitOrder} (+50 KN)`
+            );
+          }
+        });
+      } else if (isPracticeMode) {
+        completePracticeSession(
+          practiceMode || "intensive",
+          computedAccuracy
+        ).then((res) => {
+          if (res?.success) {
+            toast.success(
+              `Hoàn thành phiên Luyện tập! Nhận thưởng +${res.bonusPoints} KN`
+            );
+          }
+        });
+      } else {
+        completeLessonBonus(lessonId, {
+          isLegendary,
+          accuracy: computedAccuracy,
+        }).then((res) => {
+          if (res?.bonus) {
+            setEnergy(res.energy);
+            toast.success(
+              isLegendary
+                ? `Hoàn thành Cấp độ Huyền Thoại! Thưởng +45 KN và +${res.bonus} Năng lượng`
+                : `Hoàn thành bài học! Thưởng Mức 2: +${res.bonus} Năng lượng`
+            );
+          }
+        });
+      }
+    }
+  }, [
+    challenge,
+    isJumpFailed,
+    isJumpMode,
+    jumpUnitId,
+    isPracticeMode,
+    practiceMode,
+    lessonId,
+    playSound,
+    isLegendary,
+    totalQuestions,
+    mistakesCount,
+  ]);
+
+  // Man hinh that bai khi sai 5 lan trong Hoc vuot ("sai 5 lan la cut")
+  if (isJumpMode && isJumpFailed) {
+    return (
+      <div className="flex h-full flex-col justify-between bg-white">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-8 text-center">
+          <div className="relative mb-4 h-36 w-36">
+            <Image
+              src="/mascot_sad.svg"
+              alt="Hết trái tim"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+
+          <div className="mb-4 flex items-center gap-2 rounded-full border-2 border-rose-200 bg-rose-50 px-4 py-1.5">
+            <Image src="/heart.svg" alt="Trái tim" width={20} height={20} />
+            <span className="text-sm font-black text-rose-600">
+              0 / 5 Trái tim
+            </span>
+          </div>
+
+          <h1 className="text-2xl font-black tracking-tight text-neutral-800 sm:text-3xl">
+            Bạn đã hết trái tim!
+          </h1>
+          <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-500 sm:text-base">
+            Bạn đã trả lời sai 5 lần trong bài kiểm tra Học vượt{" "}
+            {jumpUnitOrder ? `Chương ${jumpUnitOrder}` : ""}. Hãy ôn luyện thêm
+            các bài trước rồi quay lại thử sức nhé!
+          </p>
+        </div>
+
+        <div className="border-t-2 border-slate-200 bg-white p-4">
+          <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
+            <Button
+              variant="secondary"
+              className="h-12 flex-1 rounded-2xl font-black uppercase"
+              onClick={() => router.push("/learn")}
+            >
+              QUAY LẠI TRANG HỌC
+            </Button>
+            <Button
+              variant="primaryOutline"
+              className="h-12 flex-1 rounded-2xl border-2 border-slate-200 font-black uppercase"
+              onClick={() => window.location.reload()}
+            >
+              THỬ LẠI HỌC VƯỢT
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Man hinh ket thuc bai hoc / Hoc vuot / Luyen tap
   if (!challenge) {
-    const elapsedSeconds = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
+    const elapsedSeconds = Math.max(
+      1,
+      Math.floor((Date.now() - startTime) / 1000)
+    );
     const minutes = Math.floor(elapsedSeconds / 60);
     const seconds = elapsedSeconds % 60;
     const speedText = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 
-    const totalAttempts = totalQuestions + mistakesCount;
+    const totalAttempts = Math.max(1, totalQuestions + mistakesCount);
     const accuracyPercentage = Math.min(
       100,
       Math.max(10, Math.round((totalQuestions / totalAttempts) * 100))
     );
-    const earnedPoints = isLegendary ? 45 : totalQuestions * 10;
-    const pointsDisplay = earnedPoints < 10 ? `0${earnedPoints}` : `${earnedPoints}`;
+    const earnedPoints = isJumpMode
+      ? 50
+      : isPracticeMode
+        ? 15
+        : isLegendary
+          ? 45
+          : totalQuestions * 10;
+    const pointsDisplay =
+      earnedPoints < 10 ? `0${earnedPoints}` : `${earnedPoints}`;
 
     const onShare = async () => {
       if (typeof navigator !== "undefined" && navigator.share) {
@@ -302,6 +469,18 @@ export const Quiz = ({
       }
     };
 
+    const headingText = isJumpMode
+      ? `Vượt Chương ${jumpUnitOrder ?? ""} thành công!`
+      : isPracticeMode
+        ? "Hoàn thành Luyện tập!"
+        : "Thành tích chói lọi!";
+
+    const subtitleText = isJumpMode
+      ? "Chúc mừng bạn đã vượt qua thử thách nâng cao và mở khóa chương mới"
+      : isPracticeMode
+        ? "Kỹ năng tiếng Anh của bạn đang tiến bộ từng ngày"
+        : "Trình độ tiếng Anh của bạn đang ngày càng tiến bộ";
+
     return (
       <div className="flex h-full flex-col justify-between bg-white">
         {animations && (
@@ -315,7 +494,7 @@ export const Quiz = ({
         )}
 
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-6 text-center">
-          <div className="relative mb-3 h-48 w-48 sm:h-56 sm:w-56 transition-transform hover:scale-105">
+          <div className="relative mb-3 h-48 w-48 sm:h-56 sm:w-56">
             <Image
               src="/mascot_celebrate.png"
               alt="Thành tích chói lọi"
@@ -326,10 +505,10 @@ export const Quiz = ({
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-[#ffc800] sm:text-4xl">
-            Thành tích chói lọi!
+            {headingText}
           </h1>
           <p className="mt-2 text-base font-semibold text-neutral-500 sm:text-lg">
-            Trình độ tiếng Anh của bạn đang ngày càng tiến bộ
+            {subtitleText}
           </p>
 
           <div className="mt-8 grid w-full grid-cols-3 gap-3">
@@ -339,7 +518,6 @@ export const Quiz = ({
           </div>
         </div>
 
-        {/* Thanh dieu huong duoi cung giong het Anh 1 */}
         <div className="border-t-2 border-slate-200 bg-white p-4">
           <div className="mx-auto flex max-w-md items-center gap-x-3">
             <Button
@@ -354,9 +532,11 @@ export const Quiz = ({
 
             <Button
               className="h-14 flex-1 rounded-2xl bg-[#00a2f9] hover:bg-[#0092df] text-base font-black uppercase tracking-wider text-white shadow-[0_4px_0_#007bc1] active:translate-y-1 active:shadow-none"
-              onClick={() => router.push("/learn")}
+              onClick={() =>
+                router.push(isPracticeMode ? "/practice" : "/learn")
+              }
             >
-              NHẬN KN
+              {isPracticeMode ? "VỀ LUYỆN TẬP" : "NHẬN KN"}
             </Button>
           </div>
         </div>
@@ -368,7 +548,6 @@ export const Quiz = ({
 
   return (
     <>
-      {/* Modal hoc tu moi truoc bai */}
       {hasVocab && lessonVocab && (
         <VocabModal
           isOpen={isVocabOpen}
@@ -379,15 +558,24 @@ export const Quiz = ({
       )}
 
       <Header
+        hearts={jumpHearts}
         gems={gems}
         percentage={percentage}
         energy={energy}
         hasActiveSubscription={!!userSubscription?.isActive}
         isLegendary={isLegendary}
+        mode={effectiveMode}
       />
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-3 sm:px-6 pb-6 pt-3 sm:pt-6 lg:pt-8">
+          {isJumpMode && (
+            <div className="mb-3 flex items-center justify-between rounded-xl border border-pink-200 bg-pink-50 px-3 py-1.5 text-xs font-bold text-[#ce287f]">
+              <span>Thử thách Học vượt Chương {jumpUnitOrder}</span>
+              <span>Độ khó nâng cao • Không trừ năng lượng</span>
+            </div>
+          )}
+
           {isExercise ? (
             <RichChallenge
               exercise={challenge.payload!}
@@ -429,7 +617,11 @@ export const Quiz = ({
       </div>
 
       <Footer
-        disabled={pending || selectedOption === undefined || selectedOption === ""}
+        disabled={
+          pending ||
+          (status === "none" &&
+            (selectedOption === undefined || selectedOption === ""))
+        }
         status={status}
         onCheck={onContinue}
         correctAnswer={correctAnswerText}

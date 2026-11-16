@@ -22,7 +22,7 @@ import {
   getUserProgress,
   getUserSubscription,
 } from "@/db/queries";
-import { challengeProgress, challenges, courses, userProgress } from "@/db/schema";
+import { challengeProgress, challenges, userProgress } from "@/db/schema";
 
 export const upsertUserProgress = async (courseId: number) => {
   const { userId } = await auth();
@@ -70,6 +70,7 @@ export const upsertUserProgress = async (courseId: number) => {
 
     revalidatePath("/courses");
     revalidatePath("/learn");
+    revalidatePath("/profile");
     redirect("/learn");
   }
 
@@ -86,6 +87,7 @@ export const upsertUserProgress = async (courseId: number) => {
 
   revalidatePath("/courses");
   revalidatePath("/learn");
+  revalidatePath("/profile");
   redirect("/learn");
 };
 
@@ -120,7 +122,6 @@ export const reduceHearts = async (challengeId: number) => {
 
   if (userSubscription?.isActive) return { error: "subscription" };
 
-  // Khong tru tim - Trai tim da duoc bo qua theo yeu cau he thong
   revalidatePath(`/lesson/${lessonId}`);
   return { success: true };
 };
@@ -146,6 +147,76 @@ export const refillHearts = async () => {
   revalidatePath("/learn");
   revalidatePath("/quests");
   revalidatePath("/leaderboard");
+};
+
+export const refillHeartsWithGems = async () => {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized.");
+
+  const currentUserProgress = await getUserProgress();
+  if (!currentUserProgress) throw new Error("User progress not found.");
+
+  if ((currentUserProgress.hearts ?? MAX_HEARTS) >= MAX_HEARTS) {
+    throw new Error("Trái tim đã đầy đủ.");
+  }
+
+  const GEMS_FOR_HEARTS = 50;
+  const currentGems = currentUserProgress.gems ?? 100;
+
+  if (currentGems < GEMS_FOR_HEARTS) {
+    throw new Error("Không đủ đá quý (cần 50 Đá quý).");
+  }
+
+  await db
+    .update(userProgress)
+    .set({
+      hearts: MAX_HEARTS,
+      gems: currentGems - GEMS_FOR_HEARTS,
+    })
+    .where(eq(userProgress.userId, userId));
+
+  revalidatePath("/shop");
+  revalidatePath("/learn");
+  revalidatePath("/profile");
+
+  return { success: true, hearts: MAX_HEARTS, gems: currentGems - GEMS_FOR_HEARTS };
+};
+
+export const buyStreakFreeze = async () => {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized.");
+
+  const currentUserProgress = await getUserProgress();
+  if (!currentUserProgress) throw new Error("User progress not found.");
+
+  const currentFreezes = currentUserProgress.streakFreezes ?? 0;
+  if (currentFreezes >= 2) {
+    throw new Error("Bạn đã trang bị tối đa 2/2 Streak Freeze.");
+  }
+
+  const FREEZE_PRICE = 600;
+  const currentGems = currentUserProgress.gems ?? 100;
+
+  if (currentGems < FREEZE_PRICE) {
+    throw new Error("Không đủ đá quý (cần 600 Đá quý).");
+  }
+
+  const nextFreezes = currentFreezes + 1;
+  const nextGems = currentGems - FREEZE_PRICE;
+
+  await db
+    .update(userProgress)
+    .set({
+      streakFreezes: nextFreezes,
+      gems: nextGems,
+    })
+    .where(eq(userProgress.userId, userId));
+
+  revalidatePath("/shop");
+  revalidatePath("/profile");
+  revalidatePath("/learn");
+
+  return { success: true, streakFreezes: nextFreezes, gems: nextGems };
 };
 
 export const refillEnergyWithGems = async () => {
@@ -178,6 +249,7 @@ export const refillEnergyWithGems = async () => {
   revalidatePath("/learn");
   revalidatePath("/quests");
   revalidatePath("/leaderboard");
+  revalidatePath("/profile");
 
   return { success: true };
 };
@@ -227,9 +299,16 @@ export const updateUserProfile = async ({
     }
   }
 
-  // Update session cookies so all server/client components update immediately
-  const finalName = userName?.trim() || user?.fullName || currentUserProgress?.userName || "Học viên TrioLingo";
-  const finalImage = userImageSrc || user?.imageUrl || currentUserProgress?.userImageSrc || "/mascot.svg";
+  const finalName =
+    userName?.trim() ||
+    user?.fullName ||
+    currentUserProgress?.userName ||
+    "Học viên TrioLingo";
+  const finalImage =
+    userImageSrc ||
+    user?.imageUrl ||
+    currentUserProgress?.userImageSrc ||
+    "/mascot.svg";
 
   await setSessionCookie({
     userId,
@@ -239,6 +318,7 @@ export const updateUserProfile = async ({
   });
 
   revalidatePath("/settings");
+  revalidatePath("/profile");
   revalidatePath("/leaderboard");
   revalidatePath("/learn");
   revalidatePath("/quests");
@@ -246,7 +326,6 @@ export const updateUserProfile = async ({
 
   return { success: true };
 };
-
 
 /** Nhan Ruong khi hoan thanh nhiem vu hang ngay (1, 2, hoac 3). */
 export const claimQuestChest = async (questId: DailyQuestId) => {
@@ -264,19 +343,22 @@ export const claimQuestChest = async (questId: DailyQuestId) => {
     questId === 1
       ? currentUserProgress.questChest1Claimed
       : questId === 2
-      ? currentUserProgress.questChest2Claimed
-      : currentUserProgress.questChest3Claimed;
+        ? currentUserProgress.questChest2Claimed
+        : currentUserProgress.questChest3Claimed;
 
   if (isClaimed) {
-    return { success: false, error: "Bạn đã mở rương nhiệm vụ này hôm nay rồi." };
+    return {
+      success: false,
+      error: "Bạn đã mở rương nhiệm vụ này hôm nay rồi.",
+    };
   }
 
   const done =
     questId === 1
-      ? currentUserProgress.questLessonsCompleted ?? 0
+      ? (currentUserProgress.questLessonsCompleted ?? 0)
       : questId === 2
-      ? currentUserProgress.questListeningCompleted ?? 0
-      : currentUserProgress.questHighAccuracyCompleted ?? 0;
+        ? (currentUserProgress.questListeningCompleted ?? 0)
+        : (currentUserProgress.questHighAccuracyCompleted ?? 0);
 
   if (done < quest.target) {
     return {
@@ -291,8 +373,8 @@ export const claimQuestChest = async (questId: DailyQuestId) => {
     questId === 1
       ? { gems: newGems, questChest1Claimed: true }
       : questId === 2
-      ? { gems: newGems, questChest2Claimed: true }
-      : { gems: newGems, questChest3Claimed: true };
+        ? { gems: newGems, questChest2Claimed: true }
+        : { gems: newGems, questChest3Claimed: true };
 
   await db
     .update(userProgress)
@@ -302,6 +384,7 @@ export const claimQuestChest = async (questId: DailyQuestId) => {
   revalidatePath("/quests");
   revalidatePath("/learn");
   revalidatePath("/shop");
+  revalidatePath("/profile");
 
   return { success: true, rewardGems: quest.rewardGems, newGems };
 };
@@ -316,7 +399,10 @@ export const claimDailyFreeChest = async () => {
 
   const today = getVietnamToday();
   if (currentUserProgress.dailyFreeChestDate === today) {
-    return { success: false, error: "Bạn đã nhận quà hôm nay rồi. Hẹn gặp lại ngày mai!" };
+    return {
+      success: false,
+      error: "Bạn đã nhận quà hôm nay rồi. Hẹn gặp lại ngày mai!",
+    };
   }
 
   const rewardGems = 25;
@@ -334,6 +420,7 @@ export const claimDailyFreeChest = async () => {
   revalidatePath("/learn");
   revalidatePath("/shop");
   revalidatePath("/leaderboard");
+  revalidatePath("/profile");
 
   return { success: true, rewardGems, newGems };
 };
@@ -383,6 +470,7 @@ export const claimStreakMilestone = async (milestoneDays: number) => {
   revalidatePath("/learn");
   revalidatePath("/quests");
   revalidatePath("/shop");
+  revalidatePath("/profile");
 
   return {
     success: true,

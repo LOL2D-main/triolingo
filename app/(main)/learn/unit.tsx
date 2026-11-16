@@ -1,5 +1,6 @@
 import { lessons, units } from "@/db/schema";
 
+import { JumpButton } from "./jump-button";
 import { LessonButton } from "./lesson-button";
 import { UnitBanner } from "./unit-banner";
 
@@ -31,11 +32,21 @@ export const Unit = ({
   activeLessonPercentage,
   unlockAll = false,
 }: UnitProps) => {
+  const isUnitCompletelyLocked =
+    order > 1 &&
+    !unlockAll &&
+    lessons.length > 0 &&
+    lessons.every((l) => !l.completed && l.id !== activeLesson?.id);
+
   return (
     <>
       <UnitBanner order={order} title={title} description={description} />
 
       <div className="relative flex flex-col items-center">
+        {isUnitCompletelyLocked && (
+          <JumpButton unitId={id} unitOrder={order} />
+        )}
+
         {lessons.map((lesson, i) => {
           const isCurrent = lesson.id === activeLesson?.id;
           const isLocked = !unlockAll && !lesson.completed && !isCurrent;

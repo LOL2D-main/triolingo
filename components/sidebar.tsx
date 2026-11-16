@@ -7,7 +7,11 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ADMIN_AVATAR, ADMIN_EMAIL, ADMIN_USER_ID } from "@/lib/admin-constants";
+import {
+  ADMIN_AVATAR,
+  ADMIN_EMAIL,
+  ADMIN_USER_ID,
+} from "@/lib/admin-constants";
 import { cn } from "@/lib/utils";
 
 import { SidebarItem } from "./sidebar-item";
@@ -21,6 +25,8 @@ export const Sidebar = ({ className }: SidebarProps) => {
   const isAdmin =
     user?.userId === ADMIN_USER_ID ||
     user?.email?.toLowerCase() === ADMIN_EMAIL;
+
+  const profileAvatar = isAdmin ? ADMIN_AVATAR : user?.image || "/mascot.svg";
 
   return (
     <div
@@ -39,21 +45,33 @@ export const Sidebar = ({ className }: SidebarProps) => {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-y-2">
+      <div className="flex flex-1 flex-col gap-y-1.5">
         <SidebarItem label="Học tập" href="/learn" iconSrc="/learn.svg" />
         <SidebarItem
-          label="Xếp hạng"
+          label="Luyện tập"
+          href="/practice"
+          iconSrc="/practice.svg"
+        />
+        <SidebarItem
+          label="Bảng xếp hạng"
           href="/leaderboard"
           iconSrc="/leaderboard.svg"
         />
         <SidebarItem label="Nhiệm vụ" href="/quests" iconSrc="/quests.svg" />
         <SidebarItem label="Cửa hàng" href="/shop" iconSrc="/shop.svg" />
+        <SidebarItem
+          label="Hồ sơ"
+          href="/profile"
+          iconSrc={profileAvatar}
+          roundedIcon
+        />
         <SidebarItem label="Cài đặt" href="/settings" iconSrc="/settings.svg" />
         {isAdmin && (
           <SidebarItem
             label="Quản trị"
             href="/admin"
             iconSrc={ADMIN_AVATAR}
+            roundedIcon
           />
         )}
       </div>
@@ -61,7 +79,10 @@ export const Sidebar = ({ className }: SidebarProps) => {
       <div className="border-t-2 p-4">
         {user ? (
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-x-3 overflow-hidden">
+            <Link
+              href="/profile"
+              className="flex items-center gap-x-3 overflow-hidden"
+            >
               <Avatar
                 className={cn(
                   "h-9 w-9 shrink-0 border",
@@ -89,7 +110,7 @@ export const Sidebar = ({ className }: SidebarProps) => {
                   {user.email}
                 </p>
               </div>
-            </div>
+            </Link>
             <Button
               size="sm"
               variant="ghost"

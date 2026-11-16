@@ -170,6 +170,9 @@ export const userProgress = pgTable("user_progress", {
   /** Quan ly tai khoan (admin) */
   userEmail: text("user_email").default(""),
   isBanned: boolean("is_banned").notNull().default(false),
+  /** Bo tro Ho so & Cua hang */
+  streakFreezes: integer("streak_freezes").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const userProgressRelations = relations(userProgress, ({ one }) => ({
@@ -245,7 +248,6 @@ export const campaignKeyRedemptions = pgTable(
   (t) => [unique().on(t.code, t.userId)]
 );
 
-
 /** Danh gia ung dung tren trang Triolingo Download (CH Play style, khong can dang nhap) */
 export const appReviews = pgTable("app_reviews", {
   id: serial("id").primaryKey(),
@@ -268,3 +270,31 @@ export const weeklyPodiumWinners = pgTable("weekly_podium_winners", {
   points: integer("points").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/** Theo doi ban be trong Ho so */
+export const userFollows = pgTable(
+  "user_follows",
+  {
+    id: serial("id").primaryKey(),
+    followerId: text("follower_id").notNull(),
+    followingId: text("following_id").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.followerId, t.followingId)]
+);
+
+/** Theo doi cau hoi tra loi sai de on tap trong Luyen tap -> Loi sai */
+export const userMistakes = pgTable(
+  "user_mistakes",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    challengeId: integer("challenge_id")
+      .references(() => challenges.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.userId, t.challengeId)]
+);
